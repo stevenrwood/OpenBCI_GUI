@@ -309,6 +309,7 @@ class CustomOutputStream extends PrintStream {
     private PrintWriter fileOutput;
     private Textarea textArea;
     private final String filePath = directoryManager.getConsoleDataPath()+"Console_"+directoryManager.getFileNameDateTime()+".txt";
+    private PrintWriter sessionFileOutput;
 
     public CustomOutputStream(OutputStream out) {
         super(out);
@@ -326,6 +327,27 @@ class CustomOutputStream extends PrintStream {
         }
     }
 
+    public void openSessionConsoleLog(String sessionFilePath)
+    {
+        // create log file
+        try {
+            sessionFileOutput = createWriter(sessionFilePath);
+        }
+        catch (RuntimeException e) {
+            sessionFileOutput = null;
+            println("Error! Failed to open " + sessionFilePath + " for write.");
+            println(e);
+        }
+    }
+
+    public void closeSessionConsoleLog()
+    {
+        if (sessionFileOutput != null) {
+            sessionFileOutput.close();
+            sessionFileOutput = null;
+        }
+    }
+
     public void println(String string) {
         string += "\n";
         super.print(string);  // don't call super.println() here, you'll get double prints
@@ -336,6 +358,13 @@ class CustomOutputStream extends PrintStream {
         // print to file
         fileOutput.print(string);
         fileOutput.flush();
+
+        // if active session log, print to it as well.
+        //
+        if (sessionFileOutput != null) {
+            sessionFileOutput.print(string);
+            sessionFileOutput.flush();
+        }
 
         // add to text area, if registered
         if (textArea != null) {
@@ -353,6 +382,13 @@ class CustomOutputStream extends PrintStream {
         // print to file
         fileOutput.print(string);
         fileOutput.flush();
+
+        // if active session log, print to it as well.
+        //
+        if (sessionFileOutput != null) {
+            sessionFileOutput.print(string);
+            sessionFileOutput.flush();
+        }
 
         // add to text area, if registered
         if (textArea != null) {

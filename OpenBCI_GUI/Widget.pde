@@ -504,6 +504,18 @@ class ChannelSelect {
         return channelSelectPressed;
     }
 
+    void setCheckList(int[] channels) {
+        if (channels != null) {
+            for (int i=0; i<nchan; i++) {
+                checkList.getItem(i).setState(false);
+            }
+
+            for (int i = 0; i < channels.length; i++) {
+                checkList.getItem(channels[i]-1).setState(true);
+            }
+        }
+    }
+
     void createCheckList(int _nchan) {
         int checkSize = navH - 4;
         offset = (navH - checkSize)/2;

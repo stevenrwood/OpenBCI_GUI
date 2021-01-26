@@ -375,6 +375,9 @@ class ControlPanel {
     public void open(){
         isOpen = true;
         topNav.controlPanelCollapser.setIsActive(true);
+        if (argumentParser.setSessionDefaults()) {
+            initButtonPressed();
+        }
     }
 
     public void close(){
@@ -388,6 +391,10 @@ class ControlPanel {
 
     private void setWiFiSearchStyle(String s) {
         wifiSearchStyle = s;
+    }
+
+    public void setWiFiDefaultStaticIP() {
+        setWiFiSearchStyle(WIFI_STATIC);
     }
 
     public void update() {
@@ -1375,7 +1382,7 @@ class ComPortBox {
         thread.start();
     }
 
-    private LinkedList<String> getCytonComPorts() {
+    public LinkedList<String> getCytonComPorts() {
         final String[] names = {"FT231X USB UART", "VCP"};
         final SerialPort[] comPorts = SerialPort.getCommPorts();
         LinkedList<String> results = new LinkedList<String>();
@@ -2140,8 +2147,8 @@ class RecentPlaybackBox {
 
             playbackHistoryFileExists = true;
         } catch (Exception e) {
-            println("OpenBCI_GUI::Control Panel: Playback history file not found or other error.");
-            println(e.getMessage());
+            // println("OpenBCI_GUI::Control Panel: Playback history file not found or other error.");
+            // println(e.getMessage());
             playbackHistoryFileExists = false;
         }
         recentPlaybackFilesHaveUpdated = true;

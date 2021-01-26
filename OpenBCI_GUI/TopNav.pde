@@ -18,7 +18,6 @@ class TopNav {
 
     Button_obci controlPanelCollapser;
     Button_obci fpsButton;
-    Button_obci debugButton;
 
     Button_obci stopButton;
 
@@ -26,6 +25,12 @@ class TopNav {
     Button_obci filtNotchButton;
     Button_obci smoothingButton;
     Button_obci gainButton;
+    Button_obci auxButton;
+    Button_obci eegButton;
+    Button_obci emgButton;
+    Button_obci eogButton;
+
+    Button_obci debugButton;
 
     Button_obci tutorialsButton;
     Button_obci shopButton;
@@ -50,7 +55,7 @@ class TopNav {
         int w = 256;
         controlPanelCollapser = new Button_obci(3, 3, w, 26, "System Control Panel", fontInfo.buttonLabel_size);
         controlPanelCollapser.setFont(h3, 16);
-        controlPanelCollapser.setIsActive(true);
+        controlPanelCollapser.setIsActive(false);
         controlPanelCollapser.isDropdownButton = true;
 
         fpsButton = new Button_obci(controlPanelCollapser.but_x + controlPanelCollapser.but_dx + 3, 3, 73, 26, "XX" + " fps", fontInfo.buttonLabel_size);
@@ -143,6 +148,47 @@ class TopNav {
         layoutButton = new Button_obci(width - 3 - 60, 35, 60, 26, "Layout", fontInfo.buttonLabel_size);
         layoutButton.setHelpText("Here you can alter the overall layout of the GUI, allowing for different container configurations with more or less widgets.");
         layoutButton.setFont(h4, 14);
+
+        //
+        // If aux input exectable given on command line, then create the button to start/stop it.
+        //
+        if (argumentParser.auxInputExecutable != null) {
+            Button_obci adjacentButton = filtBPButton;
+            if (currentBoard instanceof ADS1299SettingsBoard) {
+                adjacentButton = gainButton;
+            }
+            else
+            if (currentBoard instanceof SmoothingCapableBoard) {
+                adjacentButton = smoothingButton;
+            }
+
+            int pos_x = adjacentButton.but_x + adjacentButton.but_dx + 4;
+            auxButton = new Button_obci(pos_x, 35, 170, 26, auxButton_pressToStart_txt, fontInfo.buttonLabel_size);
+            auxButton.setFont(h4, 14);
+            auxButton.setColorNotPressed(color(184, 220, 105));
+            auxButton.setHelpText("Press this button to Stop/Start the aux input process. Or press <SPACEBAR>");
+            pos_x += 170 + 2;
+            eegButton = new Button_obci(pos_x, 35, 40, 26, "EEG", fontInfo.buttonLabel_size);
+            eegButton.setFont(h4, 14);
+            eegButton.setColorNotPressed(color(184, 220, 105));
+            eegButton.setHelpText("Press this button to enable just the EEG channels across all widgets");
+            pos_x += 40 + 2;
+
+            if (argumentParser.emgChannels != null) {
+                emgButton = new Button_obci(pos_x, 35, 40, 26, "EMG", fontInfo.buttonLabel_size);
+                emgButton.setFont(h4, 14);
+                emgButton.setColorNotPressed(color(184, 220, 105));
+                emgButton.setHelpText("Press this button to enable just the EMG channels across all widgets");
+                pos_x += 40 + 2;
+            }
+
+            if (argumentParser.eogChannels != null) {
+                eogButton = new Button_obci(pos_x, 35, 40, 26, "EOG", fontInfo.buttonLabel_size);
+                eogButton.setFont(h4, 14);
+                eogButton.setColorNotPressed(color(184, 220, 105));
+                eogButton.setHelpText("Press this button to enable just the EOG channels across all widgets");
+            }
+        }
 
         updateSecondaryNavButtonsColor();
     }
@@ -306,6 +352,31 @@ class TopNav {
             if (currentBoard instanceof ADS1299SettingsBoard) {
                 gainButton.draw();
             }
+            if (argumentParser.auxInputExecutable != null) {
+                color enabledColor = color(224, 56, 45);
+                color disabledColor = color(184, 220, 105);
+                if (auxInputEnabled) {
+                    auxButton.setString(auxButton_pressToStop_txt);
+                    auxButton.setColorNotPressed(enabledColor);
+                } else {
+                    auxButton.setString(auxButton_pressToStart_txt);
+                    auxButton.setColorNotPressed(disabledColor);
+                }
+                auxButton.draw();
+
+                eegButton.setColorNotPressed(argumentParser.eegChannelsEnabled ? enabledColor : disabledColor);
+                eegButton.draw();
+
+                if (emgButton != null) {
+                    emgButton.setColorNotPressed(argumentParser.emgChannelsEnabled ? enabledColor : disabledColor);
+                    emgButton.draw();
+                }
+
+                if (eogButton != null) {
+                    eogButton.setColorNotPressed(argumentParser.eogChannelsEnabled ? enabledColor : disabledColor);
+                    eogButton.draw();
+                }
+            }
         }
 
         controlPanelCollapser.draw();
@@ -368,6 +439,21 @@ class TopNav {
             if (layoutButton.isMouseHere()) {
                 layoutButton.setIsActive(true);
                 //toggle layout window to enable the selection of your container layoutButton...
+            }
+
+            if (argumentParser.auxInputExecutable != null) {
+                if (auxButton.isMouseHere()) {
+                    auxButton.setIsActive(true);
+                }
+                if (eegButton.isMouseHere()) {
+                    eegButton.setIsActive(true);
+                }
+                if (emgButton != null && emgButton.isMouseHere()) {
+                    emgButton.setIsActive(true);
+                }
+                if (eogButton != null && eogButton.isMouseHere()) {
+                    eogButton.setIsActive(true);
+                }
             }
         }
 
@@ -507,7 +593,36 @@ class TopNav {
                 }
                 layoutButton.setIsActive(false);
             }
-            
+
+            if (argumentParser.auxInputExecutable != null) {
+                if (auxButton.isMouseHere() && auxButton.isActive()) {
+                    auxButton.setIsActive(true);
+                    auxInputButtonWasPressed();
+                }
+                auxButton.setIsActive(false);
+
+                if (eegButton.isMouseHere() && eegButton.isActive()) {
+                    eegButton.setIsActive(true);
+                    argumentParser.eegChannelsEnabled = configureActiveChannels(argumentParser.eegChannelsEnabled, argumentParser.eegChannels);
+                }
+                eegButton.setIsActive(false);
+
+                if (emgButton != null) {
+                    if (emgButton.isMouseHere() && emgButton.isActive()) {
+                        emgButton.setIsActive(true);
+                        argumentParser.emgChannelsEnabled = configureActiveChannels(argumentParser.emgChannelsEnabled, argumentParser.eegChannels);
+                    }
+                    emgButton.setIsActive(false);
+                }
+
+                if (eogButton != null) {
+                    if (eogButton.isMouseHere() && eogButton.isActive()) {
+                        eogButton.setIsActive(true);
+                        argumentParser.eogChannelsEnabled = configureActiveChannels(argumentParser.eogChannelsEnabled, argumentParser.eegChannels);
+                    }
+                    eogButton.setIsActive(false);
+                }
+            }
         }
 
         fpsButton.setIsActive(false);
@@ -524,6 +639,18 @@ class TopNav {
         tutorialSelector.mouseReleased();
         configSelector.mouseReleased();
     } //end mouseReleased
+
+
+    // Set active channels across all widgets that have channelSelect objects.
+    boolean configureActiveChannels(boolean currentState, int[] channels) {
+        if (currentState)
+        {
+            channels = argumentParser.allChannels;
+        }
+        w_timeSeries.tsChanSelect.setCheckList(channels);
+        w_bandPower.bpChanSelect.setCheckList(channels);
+        return !currentState;
+    }
 
     //Load data from the latest release page using Github API and compare to local version
     void loadCompareGUIVersion() {

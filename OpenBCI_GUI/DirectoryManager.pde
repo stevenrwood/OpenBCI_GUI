@@ -1,13 +1,12 @@
 class DirectoryManager {
 
     private final String guiDataPath = System.getProperty("user.home")+File.separator+"Documents"+File.separator+"OpenBCI_GUI"+File.separator;
-    private final String recordingsPath = guiDataPath+"Recordings"+File.separator;
-    private final String settingsPath = guiDataPath+"Settings"+File.separator;
-    private final String consoleDataPath = guiDataPath+"Console_Data"+File.separator;
     private final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+    private boolean alternateFolderLayout;
+    private String sessionName;
+    private String sessionPath;
 
     DirectoryManager() {
-
     }
 
     public String getFileNameDateTime() {
@@ -19,18 +18,42 @@ class DirectoryManager {
     }
 
     public String getRecordingsPath() {
-        return recordingsPath;
+        return alternateFolderLayout ? guiDataPath : guiDataPath+"Recordings"+File.separator;
     }
 
     public String getSettingsPath() {
-        return settingsPath;
+        return alternateFolderLayout ? guiDataPath : guiDataPath+"Settings"+File.separator;
     }
 
     public String getConsoleDataPath() {
-        return consoleDataPath;
+        return alternateFolderLayout ? guiDataPath : guiDataPath+"Console_Data"+File.separator;
     }
 
-    public void init() {
+    public void setSessionName(String s) {
+        sessionName = s;
+        sessionPath = getSettingsPath() + sessionName + File.separator;
+        File dir = new File(sessionPath);
+        dir.mkdirs();
+    }
+
+    public String getSessionFolderPath() {
+        return sessionPath;
+    }
+
+    public String getSessionFilePath(String fileName) {
+        return sessionPath + fileName;
+    }
+
+    public String getConsoleLogFilePath(String source) {
+        if (alternateFolderLayout) {
+            return getSessionFilePath(source + ".log");
+        } else {
+            return getConsoleDataPath() + source + getFileNameDateTime() + ".txt";
+        }
+    }
+
+    public void init(boolean _alternateFolderLayout) {
+        alternateFolderLayout = _alternateFolderLayout;
         // Create GUI data folder in Users' Documents and copy sample data if it doesn't already exist
         String directoryName = guiDataPath + File.separator + "Sample_Data" + File.separator;
         String guiv4fileName = directoryName + "OpenBCI-sampleData-2-meditation.txt";
@@ -57,7 +80,10 @@ class DirectoryManager {
             println("OpenBCI_GUI::Setup: GUI v5 Sample Data exists in Documents folder.");
         }
 
-        makeRecordingsFolder();
+        // If original folder layout, create Recordings subfolder
+        if (!_alternateFolderLayout) {
+            makeRecordingsFolder();
+        }
     }
 
     private void copySampleDataFiles(File directory, String directoryName) {

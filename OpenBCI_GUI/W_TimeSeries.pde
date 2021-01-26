@@ -105,7 +105,7 @@ class W_timeSeries extends Widget {
     private ControlP5 tscp5;
     private Button hardwareSettings;
 
-    private ChannelSelect tsChanSelect;
+    public ChannelSelect tsChanSelect;
     private ChannelBar[] channelBars;
     private PlaybackScrollbar scrollbar;
     private TimeDisplay timeDisplay;

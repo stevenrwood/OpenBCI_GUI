@@ -238,9 +238,12 @@ static CustomOutputStream outputStream;
 //Variables from TopNav.pde. Used to set text when stopping/starting data stream.
 public final static String stopButton_pressToStop_txt = "Stop Data Stream";
 public final static String stopButton_pressToStart_txt = "Start Data Stream";
+public final static String auxButton_pressToStop_txt = "Stop Aux Input";
+public final static String auxButton_pressToStart_txt = "Start Aux Input";
 
 SessionSettings settings;
 DirectoryManager directoryManager;
+ArgumentParser argumentParser;
 
 //------------------------------------------------------------------------
 //                       Global Functions
@@ -298,7 +301,8 @@ void setup() {
             "If this error persists, contact the OpenBCI team for support.";
         return; // early exit
     }
-    
+
+    argumentParser = new ArgumentParser();
     directoryManager = new DirectoryManager();
 
     // redirect all output to a custom stream that will intercept all prints
@@ -311,9 +315,10 @@ void setup() {
     println("Screen Resolution: " + displayWidth + " X " + displayHeight);
     println("Welcome to the Processing-based OpenBCI GUI!"); //Welcome line.
     println("For more information, please visit: https://openbci.github.io/Documentation/docs/06Software/01-OpenBCISoftware/GUIDocs");
-    
-    // Copy sample data to the Users' Documents folder +  create Recordings folder
-    directoryManager.init();
+
+    // Parse any command line arguments (also calls directoryManager.init before returning)
+    argumentParser.init(args);
+
     settings = new SessionSettings();
     userPlaybackHistoryFile = directoryManager.getSettingsPath()+"UserPlaybackHistory.json";
 
@@ -429,7 +434,7 @@ private void prepareExitHandler () {
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
         public void run () {
             System.out.println("SHUTDOWN HOOK");
-            
+
             haltSystem();
         }
     }
@@ -517,13 +522,16 @@ void initSystem() {
             break;
         case DATASOURCE_STREAMING:
             currentBoard = new BoardBrainFlowStreaming(
-                    controlPanel.streamingBoardBox.getBoard().getBoardId(), 
+                    controlPanel.streamingBoardBox.getBoard().getBoardId(),
                     controlPanel.streamingBoardBox.getIP(),
                     controlPanel.streamingBoardBox.getPort()
                     );
         default:
             break;
     }
+
+    // Using sessionName, create path to session folder to hold any output files.
+    directoryManager.setSessionName(directoryManager.getFileNameDateTime());
 
     // initialize the chosen board
     boolean success = currentBoard.initialize();
@@ -579,11 +587,16 @@ void initSystem() {
 
     verbosePrint("OpenBCI_GUI: initSystem: -- Init 4 -- " + millis());
 
-     //don't save default session settings for NovaXR or StreamingBoard
-    if (eegDataSource != DATASOURCE_NOVAXR && eegDataSource != DATASOURCE_STREAMING) {
+    // don't save default session settings for NovaXR or StreamingBoard or if we were unable to initialize board.
+    if (success && eegDataSource != DATASOURCE_NOVAXR && eegDataSource != DATASOURCE_STREAMING) {
         //Init software settings: create default settings file that is datasource unique
         settings.init();
         settings.initCheckPointFive();
+    }
+
+    if (argumentParser.defaultUserSettingsFile != null && argumentParser.defaultUserSettingsFile.exists()) {
+        loadConfigFile(argumentParser.defaultUserSettingsFile);
+        settings.expertModeToggle = true;
     }
 
     midInit = false;
@@ -700,6 +713,18 @@ void stopButtonWasPressed() {
     }
 }
 
+//Execute this function whenver the aux input button is pressed
+public void auxInputButtonWasPressed() {
+    //toggle the data transfer state of the ADS1299...stop it or start it...
+    if (auxInputEnabled) {
+        verbosePrint("openBCI_GUI: Stopping aux input process, wait a few seconds.");
+        FinalizeAuxInput();
+    } else { //not running
+        verbosePrint("openBCI_GUI: auxButton was pressed. Starting aux input process, wait a few seconds.");
+        InitializeAuxInput(argumentParser.auxInputExecutable);
+    }
+}
+
 
 //halt the data collection
 void haltSystem() {
@@ -718,8 +743,8 @@ void haltSystem() {
 
         //Save a snapshot of User's GUI settings if the system is stopped, or halted. This will be loaded on next Start System.
         //This method establishes default and user settings for all data modes
-        if (systemMode == SYSTEMMODE_POSTINIT && 
-            eegDataSource != DATASOURCE_NOVAXR && 
+        if (systemMode == SYSTEMMODE_POSTINIT &&
+            eegDataSource != DATASOURCE_NOVAXR &&
             eegDataSource != DATASOURCE_STREAMING) {
                 settings.save(settings.getPath("User", eegDataSource, nchan));
         }
@@ -774,7 +799,7 @@ void systemUpdate() { // for updating data values and variables
     }
     if (systemMode == SYSTEMMODE_POSTINIT) {
         processNewData();
-        
+
         //alternative component listener function (line 177 - 187 frame.addComponentListener) for processing 3,
         if (settings.widthOfLastScreen != width || settings.heightOfLastScreen != height) {
             settings.screenHasBeenResized = true;
@@ -879,7 +904,10 @@ void introAnimation() {
     if ((millis() >= settings.introAnimationInit + settings.introAnimationDuration)
         && controlPanel != null) {
         systemMode = SYSTEMMODE_PREINIT;
-        controlPanel.isOpen = true;
+        // Call open method of control panel as it will automatically
+        // start the session if commandline arguments specified necessary
+        // data source parameters.
+        controlPanel.open();
     }
     popStyle();
 }
@@ -927,3 +955,4 @@ void drawOverlay() {
     text(s, width/2 - textWidth(s)/2, height/2 + 8);
     popStyle();
 }
+

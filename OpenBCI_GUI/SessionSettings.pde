@@ -104,7 +104,6 @@ class SessionSettings {
     int spectLogLinSave;
 
     //default configuration settings file location and file name variables
-    private String sessionPath = "";
     final String[] userSettingsFiles = {
         "CytonUserSettings.json",
         "DaisyUserSettings.json",
@@ -314,14 +313,6 @@ class SessionSettings {
         } else {
             return (System.nanoTime() - logFileStartTime) > (logFileMaxDurationNano);
         }
-    }
-
-    public void setSessionPath (String _path) {
-        sessionPath = _path;
-    }
-
-    public String getSessionPath() {
-        return sessionPath;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -1004,10 +995,10 @@ class SessionSettings {
         ////////Apply Time Series widget settings
         w_timeSeries.setTSVertScale(loadTimeSeriesSettings.getInt("Time Series Vert Scale"));
         w_timeSeries.cp5_widget.getController("VertScale_TS").getCaptionLabel().setText(w_timeSeries.getTSVertScale().getString()); //changes front-end
-        
+
         w_timeSeries.setTSHorizScale(loadTimeSeriesSettings.getInt("Time Series Horiz Scale"));
         w_timeSeries.cp5_widget.getController("Duration").getCaptionLabel().setText(w_timeSeries.getTSVertScale().getString());
-            
+
     } //end loadApplyTimeSeriesSettings
 
     /**
