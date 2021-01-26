@@ -96,13 +96,13 @@ class ArgumentParser {
                 }
             }
             else
-            if (!boardTypeDetermined && (arg.equalsIgnoreCase("--galea") || arg.equalsIgnoreCase("--novaxr"))) {
-                boardId = BoardIds.NOVAXR_BOARD;
-                dataSource = DATASOURCE_NOVAXR;
+            if (!boardTypeDetermined && (arg.equalsIgnoreCase("--galea"))) {
+                boardId = BoardIds.GALEA_BOARD;
+                dataSource = DATASOURCE_GALEA;
                 boardTypeDetermined = true;
                 wifi = true;
                 numberOfChannels = 16;
-                settingsFilePrefix = "NovaXR";
+                settingsFilePrefix = "Galea";
             }
             else
             if (!boardTypeDetermined && arg.equalsIgnoreCase("--cyton")) {
@@ -168,7 +168,7 @@ class ArgumentParser {
         if (badArgSeen || !boardTypeDetermined) {
             println("usage: OpenBCI_GUI.exe [--debug] [--sessionName <folderName>] [--auxInput <executablePath>]");
             println("                       [--synthetic <nChannels>] |");
-            println("                        --novaXR [--ipAddress <ipAddress>] [--ipPort <portNumber])] |");
+            println("                        --galea [--ipAddress <ipAddress>] [--ipPort <portNumber])] |");
             println("                        --cyton [--daisy] ([--port <comport>] | [--wifi] [--ipAddress <ipAddress>] [--ipPort <portNumber])] |");
             println("                        --playBack (<playbackFile> | <playbackFolder>)");
             valid = false;
@@ -186,7 +186,7 @@ class ArgumentParser {
                 allChannels[i] = i + 1;
             }
 
-            if (dataSource == DATASOURCE_NOVAXR) {
+            if (dataSource == DATASOURCE_GALEA) {
                 eegChannels = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 10, 15};
                 emgChannels = new int[] {9, 12, 14, 16};
                 eogChannels = new int[] {11, 13};
