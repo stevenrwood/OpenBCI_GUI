@@ -290,8 +290,8 @@ class TopNav {
             }
 
             if (argumentParser.auxInputExecutable != null) {
-                color enabledColor = isSelected_color;
-                color disabledColor = TURN_OFF_RED;
+                color disabledColor = isSelected_color;
+                color enabledColor = TURN_OFF_RED;
                 if (auxInputEnabled) {
                     auxButton.getCaptionLabel().setText(auxButton_pressToStop_txt);
                     auxButton.setColorBackground(enabledColor);
