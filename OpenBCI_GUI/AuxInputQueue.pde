@@ -6,12 +6,13 @@
 private UDP auxInputServer;
 private int auxInputPort = 6666;
 private Process auxInputProcess;
-private volatile boolean auxInputEnabled = false;
+private volatile boolean auxInputRunning = false;
 private volatile int nAvailableEvents = 0;
 private volatile int readIndex = 0;
 private volatile int writeIndex = 0;
+private volatile double marker = 0.0;
 private int maxGameEvents = 64;
-private double[][] gameEvents = new double[3][maxGameEvents];
+private double[][] gameEvents = new double[2][maxGameEvents];
 
 public boolean InitializeAuxInput(String executablePath)
 {
@@ -48,14 +49,15 @@ public boolean InitializeAuxInput(String executablePath)
     System.exit(0);
   }
 
-  auxInputEnabled = false;
+  auxInputRunning = false;
   return false;
 }
 
 public void FinalizeAuxInput()
 {
-    if (auxInputEnabled) {
-        auxInputEnabled = false;
+    if (auxInputRunning) {
+        auxInputRunning = false;
+        auxInputServer.close();
         auxInputProcess.destroy();
         auxInputProcess = null;
     }
@@ -67,8 +69,8 @@ void serverThread() {
   auxInputServer.setBuffer(1024);
   auxInputServer.log(true);
   auxInputServer.setReceiveHandler("receiveGameEvent");
-  auxInputEnabled = true;
-  while (auxInputEnabled && auxInputServer.port() != -1) {
+  auxInputRunning = true;
+  while (auxInputRunning && auxInputServer.port() != -1) {
     System.out.println("Listening on " + auxInputServer.address() + ":" + auxInputServer.port());
     auxInputServer.listen();
   }
@@ -80,29 +82,33 @@ void receiveGameEvent(byte[] message)
   String str = new String(message);
   System.out.println("Received " + message.length + " bytes.  '" + str + "'");
   StringTokenizer st = new StringTokenizer(str, ",");
-  if (st.countTokens() != 3)
+  if (st.countTokens() != 2)
     return;
 
-  for (int i=0; i<3; i++)
-    gameEvents[i][writeIndex] = Double.parseDouble(st.nextToken());
+  double gameEvent = Double.parseDouble(st.nextToken());
+  double timestamp = Double.parseDouble(st.nextToken());
+  System.out.println("Game event: " + gameEvent + " @ " + timestamp);
+  gameEvents[0][writeIndex] = gameEvent;
+  gameEvents[1][writeIndex] = timestamp;
   writeIndex = (writeIndex + 1) % maxGameEvents;
   nAvailableEvents += 1;
   System.out.println("nAvailableEvents: " + nAvailableEvents);
 }
 
-public double[] readAuxInput()
+public double readMarker()
 {
   if (nAvailableEvents == 0)
-    return null;
+    return marker * 100.0;
 
-  double[] ge = new double[3];
-  for (int i=0; i<3; i++)
-    ge[i] = gameEvents[i][readIndex];
+  marker = gameEvents[0][readIndex];
   readIndex = (readIndex + 1) % maxGameEvents;
   nAvailableEvents -= 1;
-  if (ge[1] == -1)
+  System.out.println("Returning marker: " + marker);
+
+  if (marker == -2)
   {
     FinalizeAuxInput();
   }
-  return ge;
+
+  return marker;
 }

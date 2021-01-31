@@ -42,16 +42,34 @@ abstract class Board implements DataSource {
 
     @Override
     public void update() {
+        int channelCount = getTotalChannelCount();
+        // Analog channel on Cyton and Battery channel on Galea
+        int markerChannel = getTimestampChannel() - 1;
+
         updateInternal();
 
         dataThisFrame = getNewDataInternal();
+        int numSamples = dataThisFrame[0].length;
+        if (numSamples > 0) {
+            println("getdata returned " + numSamples + " samples of " + channelCount + " channels.  cb = " + (numSamples * channelCount * 8));
+        }
+
+        if (auxInputRunning) {
+
+            for (int i = 0; i < numSamples; i++) {
+                double marker = readMarker();
+                if (marker != 0) {
+                    println("Marker: " + marker + "  TimeStamp: " + dataThisFrame[getTimestampChannel()][i]);
+                }
+                dataThisFrame[markerChannel][i] = marker;
+            }
+        }
 
         for (int i = 0; i < dataThisFrame[0].length; i++) {
-            double[] newEntry = new double[getTotalChannelCount()];
-            for (int j = 0; j < getTotalChannelCount(); j++) {
+            double[] newEntry = new double[channelCount];
+            for (int j = 0; j < channelCount; j++) {
                 newEntry[j] = dataThisFrame[j][i];
             }
-
             accumulatedData.push(newEntry);
         }
 

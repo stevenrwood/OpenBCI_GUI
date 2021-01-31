@@ -30,6 +30,9 @@ void processNewData() {
     List<double[]> currentData = currentBoard.getData(getCurrentBoardBufferSize());
     int[] exgChannels = currentBoard.getEXGChannels();
     int channelCount = currentBoard.getNumEXGChannels();
+    int timestampChannel = currentBoard.getTimestampChannel();
+    // Analog channel on Cyton and Battery channel on Galea
+    int markerChannel = timestampChannel - 1;
 
     //update the data buffers
     for (int Ichan=0; Ichan < channelCount; Ichan++) {

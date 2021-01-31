@@ -130,7 +130,11 @@ class ControlPanel {
     public void open(){
         isOpen = true;
         topNav.controlPanelCollapser.setOn();
+        //
+        // See if command line arguments gave us what we need to start a session.
+        //
         if (argumentParser.setSessionDefaults()) {
+            // It did, so start the session using command line parameters.
             controlPanel.initBox.initButtonPressed();
         }
     }

@@ -307,7 +307,7 @@ class CustomOutputStream extends PrintStream {
     private StringList data;
     private PrintWriter fileOutput;
     private Textarea textArea;
-    private final String filePath = directoryManager.getConsoleDataPath()+"Console_"+directoryManager.getFileNameDateTime()+".txt";
+    private final String filePath = directoryManager.getConsoleLogFilePath();
     private PrintWriter sessionFileOutput;
 
     public CustomOutputStream(OutputStream out) {

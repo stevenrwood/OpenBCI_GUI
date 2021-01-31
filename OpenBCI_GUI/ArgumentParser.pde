@@ -2,6 +2,7 @@ import brainflow.*;
 
 class ArgumentParser {
     public boolean valid;
+    public boolean consumed;
     public boolean debug;
     public String sessionName;
     public int dataSource;
@@ -12,7 +13,7 @@ class ArgumentParser {
     public int ipPort;
     public String auxInputExecutable;
     public File defaultUserSettingsFile;
-    public String[] playBackFiles;
+    public String playBackFile;
     public BoardIds boardId;
     public int[] allChannels;
     public int[] eegChannels;
@@ -27,6 +28,7 @@ class ArgumentParser {
     //
     public boolean init(String[] args) {
         valid = false;
+        consumed = false;
         if (args == null || args.length == 0) {
             return false;
         }
@@ -48,7 +50,7 @@ class ArgumentParser {
         ipAddress = "192.168.4.1";
         ipPort = 6677;
         defaultUserSettingsFile = null;
-        playBackFiles = null;
+        playBackFile = null;
 
         boolean boardTypeDetermined = false;
         boolean wifi = false;
@@ -116,22 +118,24 @@ class ArgumentParser {
             }
             else
             if (!boardTypeDetermined && arg.equalsIgnoreCase("--playback") && havePossibleValue) {
-                dataSource = DATASOURCE_PLAYBACKFILE;
-                boardTypeDetermined = true;
                 file = new File(possibleValue);
                 i += 1;
                 if (file.isDirectory()) {
                     File files[] = file.listFiles();
-                    playBackFiles = new String[files.length];
-                    for (int j=0; j<files.length; j++) {
-                        playBackFiles[j] = files[j].getAbsolutePath();
+                    if (files.length > 0) {
+                        playBackFile = files[0].getAbsolutePath();
                     }
                 }
                 else
                 if (file.exists()) {
-                    playBackFiles = new String[] {file.getAbsolutePath()};
+                    playBackFile = file.getAbsolutePath();
                 }
-                settingsFilePrefix = "Playback";
+
+                if (playBackFile != null) {
+                    dataSource = DATASOURCE_PLAYBACKFILE;
+                    boardTypeDetermined = true;
+                    settingsFilePrefix = "Playback";
+                }
             }
             else    // --wifi only valid for Cyton boards
             if (boardTypeDetermined && dataSource == DATASOURCE_CYTON && arg.equalsIgnoreCase("--wifi")) {
@@ -174,7 +178,7 @@ class ArgumentParser {
             valid = false;
 
             // Copy sample data to the Users' Documents folder +  create Recordings folder
-            directoryManager.init(false);
+            directoryManager.init(true);
         }
         else {
             if (dataSource == DATASOURCE_CYTON && wifi) {
@@ -190,10 +194,6 @@ class ArgumentParser {
                 eegChannels = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 10, 15};
                 emgChannels = new int[] {9, 12, 14, 16};
                 eogChannels = new int[] {11, 13};
-            }
-            else {
-                eegChannels = allChannels;
-                eegChannels = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 10, 15};
             }
 
             println("Debug: " + debug);
@@ -211,7 +211,7 @@ class ArgumentParser {
 
             println("#Channels: " + numberOfChannels);
             if (dataSource == DATASOURCE_PLAYBACKFILE) {
-                println("PlayBack file: " + playBackFiles[0]);
+                println("PlayBack file: " + playBackFile);
             }
 
             if (auxInputExecutable != null) {
@@ -220,6 +220,8 @@ class ArgumentParser {
 
             // Copy sample data to the Users' Documents folder +  create Recordings folder
             directoryManager.init(true);
+
+            directoryManager.setSessionName(sessionName);
 
             if (settingsFilePrefix != null) {
                 defaultUserSettingsFile = new File(directoryManager.getSettingsPath() + File.separator + settingsFilePrefix + "UserSettings.json");
@@ -255,13 +257,17 @@ class ArgumentParser {
     }
 
     public boolean setSessionDefaults() {
-        println("ArgumentParser: setting session defaults for ControlPanel.  Valid? " + str(valid));
-        if (!valid) {
+        if (!valid || consumed) {
             return false;
         }
 
-        directoryManager.setSessionName(sessionName);
+        println("ArgumentParser: Autostart session " + dataSource);
+
         eegDataSource = dataSource;
+        if (dataSource == DATASOURCE_PLAYBACKFILE) {
+            playbackData_fname = playBackFile;
+        }
+
         selectedProtocol = boardProtocol;
         wifi_ipAddress = ipAddress;
         openBCI_portName = serialPort;
@@ -269,7 +275,89 @@ class ArgumentParser {
             controlPanel.setWiFiDefaultStaticIP();
         }
         nchan = numberOfChannels;
-        valid = false;              // args invalid after they are consumed
+        consumed = true;
         return true;
     }
+
+    public void switchToPlaybackFile(String filePath) {
+        println("Setting datasource to PLAYBACKFILE - " + filePath);
+        playBackFile = filePath;
+        dataSource = DATASOURCE_PLAYBACKFILE;
+        defaultUserSettingsFile = new File(directoryManager.getSettingsPath() + File.separator + "PlaybackUserSettings.json");
+        println("Default user settings file: " + defaultUserSettingsFile.getAbsolutePath() + "  Exists: " + str(defaultUserSettingsFile.exists()));
+
+        // Arguments to consume now.
+        consumed = false;
+    }
+}
+
+public class Command {
+
+  protected final ArrayList<String> outputBuffer = new ArrayList<String>();
+  protected final ArrayList<String> errorBuffer = new ArrayList<String>();
+  protected final Runtime runtime = Runtime.getRuntime();
+
+  public String command;
+  public boolean success;
+
+  public Command(final String theCommand) {
+    command = theCommand;
+  }
+
+  /**
+   * Runs the command. Returns true if the command was successful.
+   * The output of the command can be accessed by calling getOutput().
+   *
+   * @return true if the command ran successfully,
+   * false if there was an error running the command.
+   */
+  public boolean run() {
+    success = false;
+    outputBuffer.clear();
+    errorBuffer.clear();
+
+     try {
+      final Process process = runtime.exec(command);
+
+      final BufferedReader
+        out = new BufferedReader(new InputStreamReader(process.getInputStream())),
+        err = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+
+      String read;
+      while ((read = out.readLine()) != null)  outputBuffer.add(read);
+
+      while ((read = err.readLine()) != null)  errorBuffer.add(read);
+
+      success = process.waitFor() == 0;
+    }
+    catch (final IOException e) {
+      System.err.println("COMMAND ERROR: " + e.getMessage());
+    }
+    catch (final InterruptedException e) {
+      System.err.println("COMMAND INTERRUPTED: " + e.getMessage());
+    }
+
+    return success;
+  }
+
+  /**
+   * Returns each line of the command's output as a List of String objects.
+   * Useful if you need to capture the results from running a command.
+   */
+  @SuppressWarnings("unchecked") public List<String> getOutput() {
+    return (List<String>) outputBuffer.clone();
+  }
+
+  @SuppressWarnings("unchecked") public List<String> getErrors() {
+    return (List<String>) errorBuffer.clone();
+  }
+
+  /**
+   * Returns the command String being used.
+   *
+   * @return String
+   */
+  @Override public String toString() {
+    return command + " returned " + success;
+  }
 }

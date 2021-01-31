@@ -154,6 +154,10 @@ public class DataWriterBDF {
         init();
     }
 
+    public String getFilePath() {
+        return fname;
+    }
+
     /**
       * @description Creates an EDF writer! The output file will contain the `_filename`.
       * @param `_fileName` {String} - Main component of the output file name.

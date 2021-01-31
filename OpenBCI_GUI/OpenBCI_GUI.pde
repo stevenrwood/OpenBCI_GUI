@@ -68,6 +68,8 @@ String localGUIVersionString = "v5.0.2";
 String localGUIVersionDate = "December 2020";
 String guiLatestVersionGithubAPI = "https://api.github.com/repos/OpenBCI/OpenBCI_GUI/releases/latest";
 String guiLatestReleaseLocation = "https://github.com/OpenBCI/OpenBCI_GUI/releases/latest";
+String currentBoardName = "";
+String currentLogFilePath = "";
 
 PApplet ourApplet;
 
@@ -163,6 +165,9 @@ float data_elec_imp_ohm[];
 
 //define how much time is shown on the time-domain montage plot (and how much is used in the FFT plot?)
 int dataBuff_len_sec = 20 + 2; //Add two seconds to max buffer to account for filter artifact on the left of the graph
+
+// Each mark has 3 double (start time, end time, marker) values.
+LinkedList<double[]> markerLocations = new LinkedList<double[]>();
 
 StopWatch sessionTimeElapsed;
 StopWatch streamTimeElapsed;
@@ -356,6 +361,9 @@ void setup() {
     argumentParser = new ArgumentParser();
     directoryManager = new DirectoryManager();
 
+    // Parse any command line arguments (also calls directoryManager.init before returning)
+    argumentParser.init(args);
+
     // redirect all output to a custom stream that will intercept all prints
     // write them to file and display them in the GUI's console window
     outputStream = new CustomOutputStream(System.out);
@@ -376,9 +384,6 @@ void setup() {
     println(osName);
     println("Welcome to the Processing-based OpenBCI GUI!"); //Welcome line.
     println("For more information, please visit: https://openbci.github.io/Documentation/docs/06Software/01-OpenBCISoftware/GUIDocs");
-
-    // Parse any command line arguments (also calls directoryManager.init before returning)
-    argumentParser.init(args);
 
     settings = new SessionSettings();
     userPlaybackHistoryFile = directoryManager.getSettingsPath()+"UserPlaybackHistory.json";
@@ -515,31 +520,38 @@ void initSystem() {
             if (selectedProtocol == BoardProtocol.SERIAL) {
                 if(nchan == 16) {
                     currentBoard = new BoardCytonSerialDaisy(openBCI_portName);
+                    currentBoardName = " - Daisy " + openBCI_portName;
                 }
                 else {
                     currentBoard = new BoardCytonSerial(openBCI_portName);
+                    currentBoardName = " - Cyton " + openBCI_portName;
                 }
             }
             else if (selectedProtocol == BoardProtocol.WIFI) {
                 if(nchan == 16) {
                     currentBoard = new BoardCytonWifiDaisy(wifi_ipAddress, selectedSamplingRate);
+                    currentBoardName = " - Daisy " + wifi_ipAddress;
                 }
                 else {
                     currentBoard = new BoardCytonWifi(wifi_ipAddress, selectedSamplingRate);
+                    currentBoardName = " - Cyton " + wifi_ipAddress;
                 }
             }
             break;
         case DATASOURCE_SYNTHETIC:
             currentBoard = new BoardBrainFlowSynthetic(nchan);
+            currentBoardName = " - Synthetic";
             println("OpenBCI_GUI: Init session using Synthetic data source");
             break;
         case DATASOURCE_PLAYBACKFILE:
             if (!playbackData_fname.equals("N/A")) {
                 currentBoard = new DataSourcePlayback(playbackData_fname);
+                currentBoardName = " - Playback";
                 println("OpenBCI_GUI: Init session using Playback data source");
             } else {
                 if (!sdData_fname.equals("N/A")) {
                     currentBoard = new DataSourceSDCard(sdData_fname);
+                    currentBoardName = " - SD Playback";
                     println("OpenBCI_GUI: Init session using Playback data source");
                 }
                 else {
@@ -551,6 +563,7 @@ void initSystem() {
         case DATASOURCE_GANGLION:
             if (selectedProtocol == BoardProtocol.WIFI) {
                 currentBoard = new BoardGanglionWifi(wifi_ipAddress, selectedSamplingRate);
+                currentBoardName = " - Ganglion " + wifi_ipAddress;
             }
             else {
                 // todo[brainflow] temp hardcode
@@ -559,6 +572,7 @@ void initSystem() {
                 String ganglionMac = controlPanel.bleBox.bleMACAddrMap.get(ganglionName);
                 println("MAC address for Ganglion is " + ganglionMac);
                 currentBoard = new BoardGanglionBLE(ganglionPort, ganglionMac);
+                currentBoardName = " - Ganglion " + ganglionPort;
             }
             break;
         case DATASOURCE_GALEA:
@@ -567,6 +581,8 @@ void initSystem() {
                     galea_boardSetting,
                     galea_sampleRate
                     );
+            currentBoardName = " - Galea " + controlPanel.galeaBox.getIPAddress();
+
             // Replace line above with line below to test brainflow synthetic
             //currentBoard = new BoardBrainFlowSynthetic(16);
             break;
@@ -582,7 +598,9 @@ void initSystem() {
     }
 
     // Using sessionName, create path to session folder to hold any output files.
-    directoryManager.setSessionName(directoryManager.getFileNameDateTime());
+    if (!argumentParser.valid) {
+        directoryManager.setSessionName(directoryManager.getFileNameDateTime());
+    }
 
     // initialize the chosen board
     boolean success = currentBoard.initialize();
@@ -706,6 +724,7 @@ void startRunning() {
     if (currentBoard.isStreaming()) {
         output("Data stream started.");
         dataLogger.onStartStreaming();
+        currentLogFilePath = " -> " + dataLogger.getFilePath();
         // todo: this should really be some sort of signal that listeners can register for "OnStreamStarted"
         // close hardware settings if user starts streaming
         w_timeSeries.closeADSSettings();
@@ -733,6 +752,7 @@ void stopRunning() {
                 streamTimeElapsed.stop();
                 sessionTimeElapsed.suspend();
                 dataLogger.onStopStreaming();
+                currentLogFilePath = "";
             } catch (IllegalStateException e) {
                 e.printStackTrace();
                 outputError("GUI Error: Failed to stop Timer. Please make an issue on GitHub in the GUI repo.");
@@ -746,7 +766,7 @@ void stopRunning() {
 //Execute this function whenver the aux input button is pressed
 public void auxInputButtonWasPressed() {
     //toggle the data transfer state of the ADS1299...stop it or start it...
-    if (auxInputEnabled) {
+    if (auxInputRunning) {
         verbosePrint("openBCI_GUI: Stopping aux input process, wait a few seconds.");
         FinalizeAuxInput();
     } else { //not running
@@ -891,7 +911,7 @@ void systemDraw() { //for drawing to the screen
     }
 
     //Display GUI version and FPS in the title bar of the app
-    surface.setTitle("OpenBCI GUI " + localGUIVersionString + " - " + localGUIVersionDate + " - " + int(frameRate) + " fps");
+    surface.setTitle("OpenBCI GUI " + localGUIVersionString + " - " + localGUIVersionDate + " - " + int(frameRate) + " fps" + currentBoardName + currentLogFilePath);
 }
 
 void requestReinit() {

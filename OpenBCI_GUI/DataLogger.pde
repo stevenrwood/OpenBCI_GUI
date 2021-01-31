@@ -14,7 +14,6 @@ class DataLogger {
     }
 
     public void initialize() {
-
     }
 
     public void uninitialize() {
@@ -28,6 +27,24 @@ class DataLogger {
     }
 
     
+    public String getFilePath() {
+        //If log file open, return its full path
+        if(settings.isLogFileOpen()) {
+            switch (outputDataSource) {
+                case OUTPUT_SOURCE_ODF:
+                    return fileWriterODF.getFilePath();
+                case OUTPUT_SOURCE_BDF:
+                    return fileWriterBDF.getFilePath();
+                case OUTPUT_SOURCE_NONE:
+                default:
+                    // Do nothing...
+                    break;
+            }
+        }
+
+        return null;
+    }
+
     private void saveNewData() {
         //If data is available, save to playback file...
         if(!settings.isLogFileOpen()) {

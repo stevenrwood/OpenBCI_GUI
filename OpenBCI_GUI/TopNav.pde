@@ -46,6 +46,7 @@ class TopNav {
     public TutorialSelector tutorialSelector;
     public ConfigSelector configSelector;
     private int previousSystemMode = 0;
+    private boolean previousAuxInputRunning = false;
 
     private boolean secondaryNavInit = false;
 
@@ -100,36 +101,32 @@ class TopNav {
         //Appears at Top Right SubNav while in a Session
         createLayoutButton("Layout", width - 3 - 60, SUBNAV_BUT_Y, 60, SUBNAV_BUT_H, h4, 14, SUBNAV_LIGHTBLUE, WHITE);
 
+        int pos_x = (int)filtBPButton.getPosition()[0] + filtBPButton.getWidth() + PAD_3;
         if (currentBoard instanceof SmoothingCapableBoard) {
-            int pos_x = (int)filtBPButton.getPosition()[0] + filtBPButton.getWidth() + PAD_3;
             createSmoothingButton(getSmoothingString(), pos_x, SUBNAV_BUT_Y, SUBNAV_BUT_W, SUBNAV_BUT_H, p5, 12, SUBNAV_LIGHTBLUE, WHITE);
+            pos_x += SUBNAV_BUT_W + PAD_3;
         }
         
         //
         // If aux input exectable given on command line, then create the button to start/stop it.
         //
         if (argumentParser.auxInputExecutable != null) {
-            Button adjacentButton = filtBPButton;
-            if (currentBoard instanceof SmoothingCapableBoard) {
-                adjacentButton = smoothingButton;
-            }
-
-            int pos_x = (int)adjacentButton.getPosition()[0] + adjacentButton.getWidth() + PAD_3;
-
             createToggleAuxInputButton(auxButton_pressToStart_txt, pos_x, SUBNAV_BUT_Y, DATASTREAM_BUT_W, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
             pos_x += DATASTREAM_BUT_W + PAD_3;
+        }
 
+        if (argumentParser.eegChannels != null) {
             createToggleEegChannelsButton("EEG", pos_x, SUBNAV_BUT_Y, 40, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
             pos_x += 40 + 2;
+        }
 
-            if (argumentParser.emgChannels != null) {
-                createToggleEmgChannelsButton("EMG", pos_x, SUBNAV_BUT_Y, 40, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
-                pos_x += 40 + 2;
-            }
+        if (argumentParser.emgChannels != null) {
+            createToggleEmgChannelsButton("EMG", pos_x, SUBNAV_BUT_Y, 40, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
+            pos_x += 40 + 2;
+        }
 
-            if (argumentParser.eogChannels != null) {
-                createToggleEogChannelsButton("EOG", pos_x, SUBNAV_BUT_Y, 40, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
-            }
+        if (argumentParser.eogChannels != null) {
+            createToggleEogChannelsButton("EOG", pos_x, SUBNAV_BUT_Y, 40, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
         }
 
         //updateSecondaryNavButtonsColor();
@@ -239,6 +236,21 @@ class TopNav {
             configSelector.update();
             previousSystemMode = systemMode;
         }
+
+        if (previousAuxInputRunning && !auxInputRunning) {
+            // Aux input processed exited so stop the current stream,
+            // after first saving away log file path so we can switch to
+            // playback mode on that log file.
+            String playbackFilePath = dataLogger.getFilePath();
+            println("AuxInput process went from running to not running - " + playbackFilePath);
+            stopButtonWasPressed();     // Stop current session
+
+            argumentParser.switchToPlaybackFile(playbackFilePath);
+            controlPanel.open();
+
+            currentLogFilePath = " <- " + playbackFilePath;
+        }
+        previousAuxInputRunning = auxInputRunning;
     }
 
     void draw() {
@@ -289,30 +301,32 @@ class TopNav {
                 smoothingButton.setVisible(isSession);
             }
 
+            color disabledColor = isSelected_color;
+            color enabledColor = TURN_OFF_RED;
             if (argumentParser.auxInputExecutable != null) {
-                color disabledColor = isSelected_color;
-                color enabledColor = TURN_OFF_RED;
-                if (auxInputEnabled) {
+                if (auxInputRunning) {
                     auxButton.getCaptionLabel().setText(auxButton_pressToStop_txt);
                     auxButton.setColorBackground(enabledColor);
                 } else {
                     auxButton.getCaptionLabel().setText(auxButton_pressToStart_txt);
                     auxButton.setColorBackground(disabledColor);
                 }
-                auxButton.setVisible(isSession);
+                auxButton.setVisible(currentBoard.isStreaming());
+            }
 
+            if (eegButton != null) {
                 eegButton.setColorBackground(argumentParser.eegChannelsEnabled ? enabledColor : disabledColor);
                 eegButton.setVisible(isSession);
+            }
 
-                if (emgButton != null) {
-                    emgButton.setColorBackground(argumentParser.emgChannelsEnabled ? enabledColor : disabledColor);
-                    emgButton.setVisible(isSession);
-                }
+            if (emgButton != null) {
+                emgButton.setColorBackground(argumentParser.emgChannelsEnabled ? enabledColor : disabledColor);
+                emgButton.setVisible(isSession);
+            }
 
-                if (eogButton != null) {
-                    eogButton.setColorBackground(argumentParser.eogChannelsEnabled ? enabledColor : disabledColor);
-                    eogButton.setVisible(isSession);
-                }
+            if (eogButton != null) {
+                eogButton.setColorBackground(argumentParser.eogChannelsEnabled ? enabledColor : disabledColor);
+                eogButton.setVisible(isSession);
             }
         }
 

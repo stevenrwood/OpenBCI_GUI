@@ -33,6 +33,7 @@ class DirectoryManager {
         sessionName = s;
         sessionPath = getSettingsPath() + sessionName + File.separator;
         File dir = new File(sessionPath);
+        println("Session Folder: " + dir.getAbsolutePath());
         dir.mkdirs();
     }
 
@@ -44,11 +45,12 @@ class DirectoryManager {
         return sessionPath + fileName;
     }
 
-    public String getConsoleLogFilePath(String source) {
+    public String getConsoleLogFilePath() {
+        String fileName = "Console_" + getFileNameDateTime();
         if (alternateFolderLayout) {
-            return getSessionFilePath(source + ".log");
+            return getSessionFilePath(fileName + ".log");
         } else {
-            return getConsoleDataPath() + source + getFileNameDateTime() + ".txt";
+            return getConsoleDataPath() + fileName + ".txt";
         }
     }
 

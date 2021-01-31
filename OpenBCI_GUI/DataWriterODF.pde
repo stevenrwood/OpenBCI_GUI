@@ -11,10 +11,14 @@ public class DataWriterODF {
     //variation on constructor to have custom name
     DataWriterODF(String _sessionName, String _fileName) {
         streamingBoard = (Board)currentBoard;
-        fname = directoryManager.getSessionFilePath("OpenBCI-RAW-" + _fileName + ".txt");
+        fname = directoryManager.getSessionFilePath("OpenBCI-RAW-" + _fileName + ".csv");
         output = createWriter(fname);        //open the file
         writeHeader();    //add the header
         rowsWritten = 0;    //init the counter
+    }
+
+    public String getFilePath() {
+        return fname;
     }
 
     public void writeHeader() {
