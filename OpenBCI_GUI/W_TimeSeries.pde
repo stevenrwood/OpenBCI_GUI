@@ -956,7 +956,7 @@ class ChannelBar {
 
 //========================== PLAYBACKSLIDER ==========================
 class PlaybackScrollbar {
-    private final float ps_Padding = 50.0; //used to make room for skip to start button
+    private float ps_Padding = argumentParser.auxInputExecutable != null ? 120.0 : 50; //used to make room for skip to start button
     private int swidth, sheight;    // width and height of bar
     private float xpos, ypos;       // x and y position of bar
     private float spos;    // x position of slider
@@ -965,6 +965,8 @@ class PlaybackScrollbar {
     private boolean locked;
     private ControlP5 pbsb_cp5;
     private Button skipToStartButton;
+    private Button nextMarkButton;
+    private Button prevMarkButton;
     private int skipToStart_diameter;
     private String currentAbsoluteTimeToDisplay = "";
     private String currentTimeInSecondsToDisplay = "";
@@ -992,6 +994,10 @@ class PlaybackScrollbar {
         //Let's make a button to return to the start of playback!!
         skipToStart_diameter = 30;
         createSkipToStartButton("skipToStartButton", "", int(xp) + int(skipToStart_diameter*.5), int(yp) + int(sh/2) - skipToStart_diameter, skipToStart_diameter, skipToStart_diameter);
+        if (argumentParser.auxInputExecutable != null) {
+            createPrevMarkButton("prevMarkButton", "", int(xp) + int(skipToStart_diameter*1.5), int(yp) + int(sh/2) - skipToStart_diameter, skipToStart_diameter, skipToStart_diameter);
+            createNextMarkButton("nextMarkButton", "", int(xp) + int(skipToStart_diameter*2.5), int(yp) + int(sh/2) - skipToStart_diameter, skipToStart_diameter, skipToStart_diameter);
+        }
 
         fileBoard = (FileBoard)currentBoard;
     }
@@ -1007,6 +1013,32 @@ class PlaybackScrollbar {
             }
         });
         skipToStartButton.setDescription("Click to go back to the beginning of the file.");
+    }
+
+    private void createPrevMarkButton(String name, String text, int _x, int _y, int _w, int _h) {
+        prevMarkButton = createButton(pbsb_cp5, name, text, _x, _y, _w, _h, 0, p5, 12, color(235), OPENBCI_DARKBLUE, BUTTON_HOVER, BUTTON_PRESSED, (Integer)null, 0);
+        PImage defaultImage = loadImage("prevMarkButton.png");
+        prevMarkButton.setImage(defaultImage);
+        prevMarkButton.setForceDrawBackground(true);
+        prevMarkButton.onRelease(new CallbackListener() {
+            public void controlEvent(CallbackEvent theEvent) {
+               prevMarkButtonAction();
+            }
+        });
+        prevMarkButton.setDescription("Click to go previous mark location in input file.");
+    }
+
+    private void createNextMarkButton(String name, String text, int _x, int _y, int _w, int _h) {
+        nextMarkButton = createButton(pbsb_cp5, name, text, _x, _y, _w, _h, 0, p5, 12, color(235), OPENBCI_DARKBLUE, BUTTON_HOVER, BUTTON_PRESSED, (Integer)null, 0);
+        PImage defaultImage = loadImage("nextMarkButton.png");
+        nextMarkButton.setImage(defaultImage);
+        nextMarkButton.setForceDrawBackground(true);
+        nextMarkButton.onRelease(new CallbackListener() {
+            public void controlEvent(CallbackEvent theEvent) {
+               nextMarkButtonAction();
+            }
+        });
+        nextMarkButton.setDescription("Click to go next mark location in input file.");
     }
 
     /////////////// Update loop for PlaybackScrollbar
@@ -1157,12 +1189,33 @@ class PlaybackScrollbar {
             int(_x) + int(skipToStart_diameter*.5),
             int(_y) - int(skipToStart_diameter*.5)
             );
+
+        if (prevMarkButton != null && nextMarkButton != null) {
+            prevMarkButton.setPosition(
+                int(_x) + int(skipToStart_diameter*1.5),
+                int(_y) - int(skipToStart_diameter*.5)
+                );
+            nextMarkButton.setPosition(
+                int(_x) + int(skipToStart_diameter*2.5),
+                int(_y) - int(skipToStart_diameter*.5)
+                );
+        }
     }
 
     //This function scrubs to the beginning of the playback file
     //Useful to 'reset' the scrollbar before loading a new playback file
     void skipToStartButtonAction() {       
         fileBoard.goToIndex(0);
+    }
+    
+    //This function scrubs to the beginning of the previous mark in the playback file
+    void prevMarkButtonAction() {
+        fileBoard.goToPrevMark();
+    }
+    
+    //This function scrubs to the beginning of the next mark in the playback file
+    void nextMarkButtonAction() {
+        fileBoard.goToNextMark();
     }
     
 };//end PlaybackScrollbar class

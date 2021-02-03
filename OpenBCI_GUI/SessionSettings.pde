@@ -520,9 +520,9 @@ class SessionSettings {
                 // activeWidgets.add(i); //keep track of the active widget
                 int containerCountsave = wm.widgets.get(i).currentContainer;
                 //println("Widget " + i + " is in Container " + containerCountsave);
-                saveWidgetSettings.setInt("Widget_"+i, containerCountsave);
+                saveWidgetSettings.setInt(wm.widgets.get(i).widgetTitle, containerCountsave);
             } else if (!wm.widgets.get(i).getIsActive()) { //If a widget is not active...
-                saveWidgetSettings.remove("Widget_"+i); //remove non-active widget from JSON
+                saveWidgetSettings.remove(wm.widgets.get(i).widgetTitle); //remove non-active widget from JSON
                 //println("widget"+i+" is not active");
             }
         }
@@ -727,15 +727,15 @@ class SessionSettings {
         //printArray(loadedWidgetsArray);
         int widgetToActivate = 0;
         for (int w = 0; w < numLoadedWidgets; w++) {
-                String [] loadWidgetNameNumber = split(loadedWidgetsArray[w], '_');
-                //Store the value of the widget to be activated
-                widgetToActivate = Integer.valueOf(loadWidgetNameNumber[1]);
-                //Load the container for the current widget[w]
-                int containerToApply = loadWidgetSettings.getInt(loadedWidgetsArray[w]);
+            // Get name of widget
+            widgetToActivate = wm.findWidgetNumber(loadedWidgetsArray[w]);
 
-                wm.widgets.get(widgetToActivate).setIsActive(true);//activate the new widget
-                wm.widgets.get(widgetToActivate).setContainer(containerToApply);//map it to the container that was loaded!
-                println("LoadGUISettings: Applied Widget " + widgetToActivate + " to Container " + containerToApply);
+            //Load the container for the current widget[w]
+            int containerToApply = loadWidgetSettings.getInt(loadedWidgetsArray[w]);
+
+            wm.widgets.get(widgetToActivate).setIsActive(true);//activate the new widget
+            wm.widgets.get(widgetToActivate).setContainer(containerToApply);//map it to the container that was loaded!
+            println("LoadGUISettings: Applied Widget " + widgetToActivate + " to Container " + containerToApply);
         }//end case for all widget/container settings
 
         /////////////////////////////////////////////////////////////

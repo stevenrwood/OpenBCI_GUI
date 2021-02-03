@@ -26,6 +26,9 @@ public class DataWriterODF {
         output.println("%Number of channels = " + nchan);
         output.println("%Sample Rate = " + streamingBoard.getSampleRate() + " Hz");
         output.println("%Board = " + streamingBoard.getClass().getName());
+        if (argumentParser.auxInputExecutable != null) {
+            output.println("%AuxInput = " + argumentParser.auxInputExecutable);
+        }
 
         String[] colNames = streamingBoard.getChannelNames();
         

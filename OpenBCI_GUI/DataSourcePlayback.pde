@@ -2,6 +2,8 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
     private String playbackFilePath;
     private ArrayList<double[]> rawData;
     private int currentSample;
+    private ArrayList<double[]> markData;
+    private int currentMarkIndex;
     private int timeOfLastUpdateMS;
     private String underlyingClassName;
     private Integer batteryChannelCache = null;
@@ -12,6 +14,7 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
     
     private Board underlyingBoard = null;
     private int sampleRate = -1;
+    private boolean containsMarks;
 
     DataSourcePlayback(String filePath) {
         playbackFilePath = filePath;
@@ -63,6 +66,12 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
                 sampleRate = Integer.parseInt(hzString);
             }
 
+            if (line.startsWith("%AuxInput")) {
+                containsMarks = true;
+                int startIndex = line.indexOf('=') + 2;
+                argumentParser.auxInputExecutable = line.substring(startIndex);
+            }
+
             // used to figure out the underlying board type
             if (line.startsWith("%Board")) {
                 int startIndex = line.indexOf('=') + 2;
@@ -108,6 +117,11 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
         int dataLength = lines.length - dataStart;
         rawData = new ArrayList<double[]>(dataLength);
         
+        markData = new ArrayList<double[]>(1000);
+        currentMarkIndex = -1;
+        double previousMarkValue = 0.0;
+        int markChannel = getTimestampChannel() - 1;
+
         for (int iData=0; iData<dataLength; iData++) {
             String line = lines[dataStart + iData];
             String[] valStrs = line.split(",");
@@ -115,9 +129,17 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
             double[] row = new double[getTotalChannelCount()];
             for (int iCol = 0; iCol < getTotalChannelCount(); iCol++) {
                 row[iCol] = Double.parseDouble(valStrs[iCol]);
+                if (containsMarks && iCol == markChannel && row[iCol] != 0.0 && row[iCol] != previousMarkValue) {
+                    previousMarkValue = row[iCol];
+                    double[] markInfo = new double[] {(double) iData, previousMarkValue};
+                    println("MarkInfo - Index:" + markInfo[0] + "  Value: " + markInfo[1]);
+                    markData.add(markInfo);
+                }
             }
             rawData.add(row);
         }
+        markData.trimToSize();
+        println("#marks found: " + markData.size());
 
         return true;
     }
@@ -384,5 +406,28 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
     @Override
     public boolean endOfFileReached() {
         return currentSample >= getTotalSamples();
+    }
+
+
+    @Override
+    public boolean goToPrevMark() {
+        if (currentMarkIndex > 0) {
+            currentMarkIndex -= 1;
+            goToIndex((int) markData.get(currentMarkIndex)[0]);
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public boolean goToNextMark() {
+        if (currentMarkIndex < markData.size() - 1) {
+            currentMarkIndex += 1;
+            goToIndex((int) markData.get(currentMarkIndex)[0]);
+            return true;
+        }
+
+        return false;
     }
 }

@@ -4,6 +4,7 @@ abstract class Board implements DataSource {
 
     private FixedStack<double[]> accumulatedData = new FixedStack<double[]>();
     private double[][] dataThisFrame;
+    private boolean capturingMarks;
     private PacketLossTracker packetLossTracker;
 
     // accessible by all boards, can be returned as valid empty data
@@ -58,9 +59,21 @@ abstract class Board implements DataSource {
 
             for (int i = 0; i < numSamples; i++) {
                 double marker = readMarker();
-                if (marker != 0) {
-                    println("Marker: " + marker + "  TimeStamp: " + dataThisFrame[getTimestampChannel()][i]);
+                double timestamp = dataThisFrame[getTimestampChannel()][i];
+                if (markerTimestamp != 0.0) {
+                    if (marker < 0) {
+                        // Start capturing after first negative mark (-100 or start input)
+                        // and stop capturing after second negative mark (-200 or end input)
+                        capturingMarks = !capturingMarks;
+                    }
+                    else if (capturingMarks) {
+                        double delta = markerTimestamp - timestamp;
+                        if (marker != 0) {
+                            println("Marker: " + marker + "  TimeStamp: " + timestamp + "  Delta: " + delta);
+                        }
+                    }
                 }
+
                 dataThisFrame[markerChannel][i] = marker;
             }
         }

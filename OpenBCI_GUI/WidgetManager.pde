@@ -99,15 +99,6 @@ void setupWidgets(PApplet _this, ArrayList<Widget> w){
     w_spectrogram.setTitle("Spectrogram");
     addWidget(w_spectrogram, w);
 
-    //only instantiate these widgets if you are using a Cyton board for live streaming
-    if(currentBoard instanceof AnalogCapableBoard){
-        //Cyton Widget_8
-        w_pulsesensor = new W_PulseSensor(_this);
-        w_pulsesensor.setTitle("Pulse Sensor");
-        addWidget(w_pulsesensor, w);
-        // println("  setupWidgets pulse sensor -- " + millis());
-    }
-
     if(currentBoard instanceof DigitalCapableBoard) {
         //Cyton Widget_9
         w_digitalRead = new W_DigitalRead(_this);
@@ -128,6 +119,15 @@ void setupWidgets(PApplet _this, ArrayList<Widget> w){
         addWidget(w_packetLoss, w);
     }
     
+    //only instantiate these widgets if you are using a Cyton board for live streaming
+    if(currentBoard instanceof AnalogCapableBoard){
+        //Cyton Widget_8
+        w_pulsesensor = new W_PulseSensor(_this);
+        w_pulsesensor.setTitle("Pulse Sensor");
+        addWidget(w_pulsesensor, w);
+        // println("  setupWidgets pulse sensor -- " + millis());
+    }
+
     //Cyton Widget_11, Synthetic Widget_8, Ganglion/Playback Widget_9
     //DEVELOPERS: Here is an example widget with the essentials/structure in place
     w_template1 = new W_template(_this);
@@ -193,6 +193,16 @@ class WidgetManager{
 
     public void setVisible(boolean _visible) {
         visible = _visible;
+    }
+
+    public int findWidgetNumber(String widgetName) {
+        for(int i = 0; i < widgets.size(); i++){
+            if (widgetName.equalsIgnoreCase(widgets.get(i).widgetTitle)) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     void setupWidgetSelectorDropdowns(){

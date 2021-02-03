@@ -11,6 +11,7 @@ private volatile int nAvailableEvents = 0;
 private volatile int readIndex = 0;
 private volatile int writeIndex = 0;
 private volatile double marker = 0.0;
+private volatile double markerTimestamp = 0.0;
 private int maxGameEvents = 64;
 private double[][] gameEvents = new double[2][maxGameEvents];
 
@@ -97,10 +98,13 @@ void receiveGameEvent(byte[] message)
 
 public double readMarker()
 {
-  if (nAvailableEvents == 0)
-    return marker * 100.0;
+  if (nAvailableEvents == 0) {
+    markerTimestamp = 0.0;
+    return marker;
+  }
 
-  marker = gameEvents[0][readIndex];
+  marker = (gameEvents[0][readIndex] * gameEvents[0][readIndex] + 1) * 100.0;
+  markerTimestamp = gameEvents[1][readIndex];
   readIndex = (readIndex + 1) % maxGameEvents;
   nAvailableEvents -= 1;
   System.out.println("Returning marker: " + marker);

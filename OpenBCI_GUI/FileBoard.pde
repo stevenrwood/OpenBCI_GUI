@@ -11,4 +11,9 @@ interface FileBoard {
     public void goToIndex(int index);
 
     public boolean endOfFileReached();
+
+    public boolean goToPrevMark();
+
+    public boolean goToNextMark();
+
 };

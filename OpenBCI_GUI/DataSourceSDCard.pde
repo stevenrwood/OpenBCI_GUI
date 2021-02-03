@@ -304,4 +304,13 @@ class DataSourceSDCard implements DataSource, FileBoard, AccelerometerCapableBoa
         return unhex(hex);
     }
 
+    @Override
+    public boolean goToPrevMark() {
+        return false;
+    }
+
+    @Override
+    public boolean goToNextMark() {
+        return false;
+    }
 }
