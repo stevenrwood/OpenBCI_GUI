@@ -103,7 +103,7 @@ public double readMarker()
     return marker;
   }
 
-  marker = (gameEvents[0][readIndex] * gameEvents[0][readIndex] + 1) * 100.0;
+  marker = gameEvents[0][readIndex];
   markerTimestamp = gameEvents[1][readIndex];
   readIndex = (readIndex + 1) % maxGameEvents;
   nAvailableEvents -= 1;
@@ -115,4 +115,5 @@ public double readMarker()
   }
 
   return marker;
+
 }

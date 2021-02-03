@@ -130,10 +130,10 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
             for (int iCol = 0; iCol < getTotalChannelCount(); iCol++) {
                 row[iCol] = Double.parseDouble(valStrs[iCol]);
                 if (containsMarks && iCol == markChannel && row[iCol] != 0.0 && row[iCol] != previousMarkValue) {
-                    previousMarkValue = row[iCol];
-                    double[] markInfo = new double[] {(double) iData, previousMarkValue};
-                    println("MarkInfo - Index:" + markInfo[0] + "  Value: " + markInfo[1]);
+                    double[] markInfo = new double[] {(double) iData, row[iCol]};
+                    println("MarkInfo - Index:" + markInfo[0] + "  Value: " + markInfo[1] + "  Prev: " + previousMarkValue);
                     markData.add(markInfo);
+                    previousMarkValue = row[iCol];
                 }
             }
             rawData.add(row);

@@ -237,6 +237,10 @@ class TopNav {
             previousSystemMode = systemMode;
         }
 
+        if (previousAuxInputRunning != auxInputRunning) {
+            println("Prev: " + previousAuxInputRunning + "  Cur: " + auxInputRunning);
+        }
+
         if (previousAuxInputRunning && !auxInputRunning) {
             // Aux input processed exited so stop the current stream,
             // after first saving away log file path so we can switch to
