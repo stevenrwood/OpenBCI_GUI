@@ -29,7 +29,7 @@ abstract class BoardBrainFlow extends Board {
             boardShim = new BoardShim (getBoardIdInt(), getParams());
             try {
                 BoardShim.enable_dev_board_logger();
-                BoardShim.set_log_file(directoryManager.getSessionFilePath("Brainflow_" + directoryManager.getFileNameDateTime() + ".txt")) ;
+                BoardShim.set_log_file(directoryManager.getSessionFilePath("Brainflow_" + directoryManager.getFileNameDateTime() + ".log")) ;
             } catch (BrainFlowError e) {
                 e.printStackTrace();
             }

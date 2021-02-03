@@ -3,7 +3,6 @@ import brainflow.*;
 class ArgumentParser {
     public boolean valid;
     public boolean consumed;
-    public boolean debug;
     public String sessionName;
     public int dataSource;
     public BoardProtocol boardProtocol;
@@ -12,6 +11,7 @@ class ArgumentParser {
     public String ipAddress;
     public int ipPort;
     public String auxInputExecutable;
+    public String[] auxInputCommandLineTokens;
     public File defaultUserSettingsFile;
     public String playBackFile;
     public BoardIds boardId;
@@ -42,7 +42,6 @@ class ArgumentParser {
 
         // Default value is a board we don't support so we can tell whether or not args
         // specified one of: --synthetic, --galea, --cyton or --playback
-        debug = false;
         sessionName = directoryManager.getFileNameDateTime();
         dataSource = -1;
         numberOfChannels = 8;
@@ -66,7 +65,7 @@ class ArgumentParser {
             }
             println("  arg[" + i + "]: '" + arg + "'" + (havePossibleValue ? ("  possibleValue: '" + possibleValue + "'") : ""));
             if (arg.equalsIgnoreCase("--debug")) {
-                debug = true;
+                isVerbose = true;
             }
             else
             if (havePossibleValue && arg.equalsIgnoreCase("--sessionname")) {
@@ -75,15 +74,19 @@ class ArgumentParser {
             }
             else
             if (havePossibleValue && arg.equalsIgnoreCase("--auxInput")) {
-                file= new File(possibleValue);
-                i += 1;
-                if (file.exists() && file.canExecute()) {
-                    auxInputExecutable = file.getAbsolutePath();
+                auxInputCommandLineTokens = possibleValue.split("[\\s]");
+                if (auxInputCommandLineTokens.length > 0) {
+                    file= new File(auxInputCommandLineTokens[0]);
+                    i += 1;
+                    if (file.exists() && file.canExecute()) {
+                        auxInputExecutable = file.getAbsolutePath();
+                        auxInputCommandLineTokens[0] = auxInputExecutable;
+                    }
+                    continue;
                 }
-                else {
-                    println(arg + " " + possibleValue + " - path does not exist or is not an executable file.");
-                    badArgSeen = true;
-                }
+
+                println(arg + " " + possibleValue + " - path does not exist or is not an executable file.");
+                badArgSeen = true;
             }
             else
             if (!boardTypeDetermined && arg.equalsIgnoreCase("--synthetic")) {
@@ -170,11 +173,11 @@ class ArgumentParser {
         }
 
         if (badArgSeen || !boardTypeDetermined) {
-            println("usage: OpenBCI_GUI.exe [--debug] [--sessionName <folderName>] [--auxInput <executablePath>]");
+            println("usage: OpenBCI_GUI.exe [--sessionName <folderName>] [--auxInput <commandLine>]");
             println("                       [--synthetic <nChannels>] |");
             println("                        --galea [--ipAddress <ipAddress>] [--ipPort <portNumber])] |");
             println("                        --cyton [--daisy] ([--port <comport>] | [--wifi] [--ipAddress <ipAddress>] [--ipPort <portNumber])] |");
-            println("                        --playBack (<playbackFile> | <playbackFolder>)");
+            println("                        --playBack <playbackFolder>)");
             valid = false;
 
             // Copy sample data to the Users' Documents folder +  create Recordings folder
@@ -196,7 +199,7 @@ class ArgumentParser {
                 eogChannels = new int[] {11, 13};
             }
 
-            println("Debug: " + debug);
+            println("Debug: " + isVerbose);
             println("SessionName: " + sessionName);
             println("DataSource: " + dataSource);
             println("BoardProtocol: " + boardProtocol);

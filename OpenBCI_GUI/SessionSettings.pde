@@ -730,7 +730,7 @@ class SessionSettings {
 
             wm.widgets.get(widgetToActivate).setIsActive(true);//activate the new widget
             wm.widgets.get(widgetToActivate).setContainer(containerToApply);//map it to the container that was loaded!
-            println("LoadGUISettings: Applied Widget " + widgetToActivate + " to Container " + containerToApply);
+            println("LoadGUISettings: Applied " + loadedWidgetsArray[w] + "(" + widgetToActivate + ") Widget to Container " + containerToApply);
         }//end case for all widget/container settings
 
         /////////////////////////////////////////////////////////////

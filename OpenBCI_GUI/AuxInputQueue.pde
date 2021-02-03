@@ -21,23 +21,22 @@ public boolean InitializeAuxInput(String executablePath)
     // Start the server that will accept game event messages from bciGame.exe
     thread("serverThread");
 
-    // Now launch bciGame.exe so it can connect to our server
+    // Get command line args and substitute session folder path and UDP server port
+    // as needed.
     List<String> args = new LinkedList<String>();
-    args.add(executablePath);
-    args.add("--game");
-    args.add("FollowMe");
-    args.add("--logFolder");
-    args.add(directoryManager.getSessionFolderPath());
-    args.add("--stimulusDelay");
-    args.add("1000");
-    args.add("--feedbackDelay");
-    args.add("500");
-    args.add("--trialCount");
-    args.add("10");
-    args.add("--openBCIPort");
-    args.add(str(auxInputPort));
+    for (int i=0; i<argumentParser.auxInputCommandLineTokens.length; i++) {
+        String arg = argumentParser.auxInputCommandLineTokens[i];
+        if (arg.equalsIgnoreCase("$session")) {
+            args.add(directoryManager.getSessionFolderPath());
+        } else if (arg.equalsIgnoreCase("$bciport")) {
+            args.add(str(auxInputPort));
+        } else {
+            args.add(arg);
+        }
+    }
+    // Now launch aux input process so it can connect to our server
     ProcessBuilder pb = new ProcessBuilder(args);
-    verbosePrint("Launching " + pb.command());
+    println("Launching " + pb.command());
     pb.inheritIO();
     auxInputProcess = pb.start();
     if (auxInputProcess != null) {
@@ -82,12 +81,13 @@ void receiveGameEvent(byte[] message)
 {
   String str = new String(message);
   System.out.println("Received " + message.length + " bytes.  '" + str + "'");
-  StringTokenizer st = new StringTokenizer(str, ",");
-  if (st.countTokens() != 2)
+  String[] tokens = str.split("[,]");
+  if (tokens.length != 2) {
     return;
+  }
 
-  double gameEvent = Double.parseDouble(st.nextToken());
-  double timestamp = Double.parseDouble(st.nextToken());
+  double gameEvent = Double.parseDouble(tokens[0]);
+  double timestamp = Double.parseDouble(tokens[1]);
   System.out.println("Game event: " + gameEvent + " @ " + timestamp);
   gameEvents[0][writeIndex] = gameEvent;
   gameEvents[1][writeIndex] = timestamp;
