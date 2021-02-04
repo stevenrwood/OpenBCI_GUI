@@ -110,7 +110,7 @@ class TopNav {
         //
         // If aux input exectable given on command line, then create the button to start/stop it.
         //
-        if (argumentParser.auxInputExecutable != null) {
+        if (argumentParser.auxInputExecutable != null && eegDataSource != DATASOURCE_PLAYBACKFILE) {
             createToggleAuxInputButton(auxButton_pressToStart_txt, pos_x, SUBNAV_BUT_Y, DATASTREAM_BUT_W, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
             pos_x += DATASTREAM_BUT_W + PAD_3;
         }
@@ -307,7 +307,7 @@ class TopNav {
 
             color disabledColor = isSelected_color;
             color enabledColor = TURN_OFF_RED;
-            if (argumentParser.auxInputExecutable != null) {
+            if (auxButton != null) {
                 if (auxInputRunning) {
                     auxButton.getCaptionLabel().setText(auxButton_pressToStop_txt);
                     auxButton.setColorBackground(enabledColor);
