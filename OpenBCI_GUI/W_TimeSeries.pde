@@ -981,7 +981,7 @@ class PlaybackScrollbar {
         sheight = sh;
         //float widthtoheight = sw - sh;
         //ratio = (float)sw / widthtoheight;
-        xpos = xp + ps_Padding; //lots of padding to make room for button
+        xpos = xp + ps_Padding; //lots of padding to make room for button(s)
         ypos = yp-sheight/2;
         spos = xpos;
         sposMin = xpos;
