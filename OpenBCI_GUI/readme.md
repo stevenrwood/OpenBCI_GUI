@@ -84,7 +84,7 @@ Changed made to OpenBCI_GUI to support BCI experiments:
   buttons.  For each that has a unique set of values, a button on TopNav
   bar is created to right of smoothing button.  The EEG toggle button
   will constrain the TimeSeries and BandPower widgets to only display
-  EEG channels.  Similarly for EMG and EOG channels.
+  EEG channels.  Similarly for EMG and EOG toggle buttons and channels.
 
 - For playback mode, if input file contains valid markerChannel, adds
   two new icons to playback scrollbar for previous and next mark.
