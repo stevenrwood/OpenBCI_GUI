@@ -1,92 +1,1 @@
-Changes made to OpenBCI\_GUI to support BCI experiments:
-
-* Changed output direcory structure so that each time Start Session is
-  pressed, a new session folder is created and all related files created
-  in that folder.  For example, after one session:
-
->     C:\users\steve\Documents\OpenBCI_GUI\2021-02-03_08-35-44
->     C:\users\steve\Documents\OpenBCI_GUI\2021-02-03_08-35-44\Brainflow_2021-02-03_08-35-47.log
->     C:\users\steve\Documents\OpenBCI_GUI\2021-02-03_08-35-44\Console_2021-02-03_08-35-44.log
->     C:\users\steve\Documents\OpenBCI_GUI\2021-02-03_08-35-44\OpenBCI-RAW-2021-02-03_08-35-55.csv
->     C:\users\steve\Documents\OpenBCI_GUI\DaisyDefaultSettings.json
->     C:\users\steve\Documents\OpenBCI_GUI\DaisyUserSettings.json
->     C:\users\steve\Documents\OpenBCI_GUI\PlaybackDefaultSettings.json
->     C:\users\steve\Documents\OpenBCI_GUI\PlaybackUserSettings.json
->     C:\users\steve\Documents\OpenBCI_GUI\Sample_Data
->     C:\users\steve\Documents\OpenBCI_GUI\Sample_Data\OpenBCI_GUI-v5-blinks-jawClench-alpha.txt
->     C:\users\steve\Documents\OpenBCI_GUI\Sample_Data\OpenBCI_GUI-v5-meditation.txt
->     C:\users\steve\Documents\OpenBCI_GUI\UserPlaybackHistory.json
-
-  Also changed file extensions to .log for log files and .csv for ODF
-  output files.  All the .json settings files are in the root of
-  OpenBCI\_GUI folder.
-
-* Changed key values for Widget settings in .json file to use actual
-  Widget title instead of created name of "Widget\_N" where value of N is
-  variable and depends on data source and mode.  For example:
-
->     "widget": {
->       "Time Series": 1,
->       "FFT Plot": 3,
->       "Analog Read": 7,
->       "Band Power": 9
->     },
-
-* Added support for command line arguments to specify data source and
-  automatically start the session if all the info needed given on
-  command line.
-
->     usage: OpenBCI\_GUI.exe [--debug] [--sessionName <folderName>] [--auxInput <commandLine>]
->                            [--synthetic <nChannels>] |
->                             --galea [--ipAddress <ipAddress>] [--ipPort <portNumber])] |
->                             --cyton [--daisy] ([--port <comport>] | [--wifi] [--ipAddress <ipAddress>] [--ipPort <portNumber]) |
->                             --playBack <playbackFile>
->                             ]
-
-  --debug will set isVerbose for more debugging output
-
-  --sessionName will override debug data/time session name.
-
-  If --cyton given, it will automatically determine &lt;comport&gt; or wifi
-  &lt;ipAddress&gt; if not given on command line.  For --galea, it will
-  automatically make sure connected to OpenBCI\_Gateway network and then
-  use arp -a command to find galea ipAddress based on MAC address.
-
-  If --auxInput given, it specifies a command line that will be
-  launched when "Start Aux Input" is pressed.  $session argument
-  replaced with path to session folder and $bciport replaced with
-  local UDP port that OpenBCI\_GUI is waiting on for events.
-  For example:
-
->     OpenBCI\_GUI --cyton --daisy --auxinput "\\users\\steve\\bciGame\\BciGame.exe --game FollowMe
->                 --logFolder $session --StimulusDelay 1000 --FeedbackDelay 500 --TrialCount 10
->                 --openBCIPort $bciport"
-
-  Datagram messages sent to UDP server are in following format:
-
-    <eventValue>,<timestamp>
-
-  where &lt;eventValue&gt; is one of the following:
-
->     Start = -1,
->     Stop = -2,
->     Stimulus = 1,
->     CorrectResponse = 2,
->     IncorrectResponse = 3
-
-  The UDP server will associate the event value with next BCI sample
-  read from buffer, returning it in the AnalogRead2 channel.  Once
-  brainflow updates with new support for Marker channel, values will be
-  stored in that channel.  &lt;timestamp&gt; value is the Unix file time of
-  when event generated.
-
-* Added zero to three new toggle buttons for constraining channels in
-  display output.  Code does this by querying board channels for EEG,
-  EMG, EOG channels.  If all three have same channels, then no new
-  buttons.  For each that has a unique set of values, a button on TopNav
-  bar is created to right of smoothing button.  The EEG toggle button
-  will constrain the TimeSeries and BandPower widgets to only display
-  EEG channels.  Similarly for EMG and EOG toggle buttons and channels.
-
-* For playback mode, if input file contains valid markerChannel, adds
-  two new icons to playback scrollbar for previous and next mark.
+Changes made to OpenBCI\_GUI to support BCI experiments:* Changed output direcory structure so that each time Start Session is  pressed, a new session folder is created and all related files created  in that folder.  For example, after one session:>     C:\users\steve\Documents\OpenBCI_GUI\2021-02-03_08-35-44>     C:\users\steve\Documents\OpenBCI_GUI\2021-02-03_08-35-44\Brainflow_2021-02-03_08-35-47.log>     C:\users\steve\Documents\OpenBCI_GUI\2021-02-03_08-35-44\Console_2021-02-03_08-35-44.log>     C:\users\steve\Documents\OpenBCI_GUI\2021-02-03_08-35-44\OpenBCI-RAW-2021-02-03_08-35-55.csv>     C:\users\steve\Documents\OpenBCI_GUI\DaisyDefaultSettings.json>     C:\users\steve\Documents\OpenBCI_GUI\DaisyUserSettings.json>     C:\users\steve\Documents\OpenBCI_GUI\PlaybackDefaultSettings.json>     C:\users\steve\Documents\OpenBCI_GUI\PlaybackUserSettings.json>     C:\users\steve\Documents\OpenBCI_GUI\Sample_Data>     C:\users\steve\Documents\OpenBCI_GUI\Sample_Data\OpenBCI_GUI-v5-blinks-jawClench-alpha.txt>     C:\users\steve\Documents\OpenBCI_GUI\Sample_Data\OpenBCI_GUI-v5-meditation.txt>     C:\users\steve\Documents\OpenBCI_GUI\UserPlaybackHistory.json  Also changed file extensions to .log for log files and .csv for ODF  output files.  All the .json settings files are in the root of  OpenBCI\_GUI folder.* Changed key values for Widget settings in .json file to use actual  Widget title instead of created name of "Widget\_N" where value of N is  variable and depends on data source and mode.  For example:>     "widget": {>       "Time Series": 1,>       "FFT Plot": 3,>       "Analog Read": 7,>       "Band Power": 9>     },* Added support for command line arguments to specify data source and  automatically start the session if all the info needed given on  command line.>     usage: OpenBCI\_GUI.exe [--debug] [--sessionName <folderName>] [--auxInput <commandLine>]>                            [--synthetic <nChannels>] |>                             --galea [--ipAddress <ipAddress>] [--ipPort <portNumber])] |>                             --cyton [--daisy] ([--port <comport>] | [--wifi] [--ipAddress <ipAddress>] [--ipPort <portNumber]) |>                             --playBack <playbackFile>>                             ]  --debug will set isVerbose for more debugging output  --sessionName will override debug date/time session name.  If --cyton given, it will automatically determine &lt;comport&gt; or wifi  &lt;ipAddress&gt; if not given on command line.  For --galea, it will  automatically make sure connected to OpenBCI\_Gateway network and then  use arp -a command to find galea ipAddress based on MAC address.  If --auxInput given, it specifies a command line that will be  launched when "Start Aux Input" is pressed.  $session argument  replaced with path to session folder and $bciport replaced with  local UDP port that OpenBCI\_GUI is waiting on for events.  For example:>     OpenBCI\_GUI --cyton --daisy --auxinput "\\users\\steve\\bciGame\\BciGame.exe --game FollowMe>                 --logFolder $session --StimulusDelay 1000 --FeedbackDelay 500 --TrialCount 10>                 --openBCIPort $bciport"  Datagram messages sent to UDP server are in following format:    <eventValue>,<timestamp>  where &lt;eventValue&gt; is one of the following:>     Start = -1,>     Stop = -2,>     Stimulus = 1,>     CorrectResponse = 2,>     IncorrectResponse = 3  The UDP server will associate the event value with next BCI sample  read from buffer, returning it in the AnalogRead2 channel.  Once  brainflow updates with new support for Marker channel, values will be  stored in that channel.  &lt;timestamp&gt; value is the Unix file time of  when event generated.* Added zero to three new toggle buttons for constraining channels in  display output.  Code does this by querying board channels for EEG,  EMG, EOG channels.  If all three have same channels, then no new  buttons.  For each that has a unique set of values, a button on TopNav  bar is created to right of smoothing button.  The EEG toggle button  will constrain the TimeSeries and BandPower widgets to only display  EEG channels.  Similarly for EMG and EOG toggle buttons and channels.* For playback mode, if input file contains valid markerChannel, adds  two new icons to playback scrollbar for previous and next mark.
