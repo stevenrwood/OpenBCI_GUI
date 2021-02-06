@@ -25,6 +25,7 @@ W_playback w_playback;
 W_Spectrogram w_spectrogram;
 W_AuraAux w_galeaAux;
 W_PacketLoss w_packetLoss;
+W_MarkerChannel w_markerChannel;
 
 //ADD YOUR WIDGET TO WIDGETS OF WIDGETMANAGER
 void setupWidgets(PApplet _this, ArrayList<Widget> w){
@@ -142,6 +143,9 @@ void setupWidgets(PApplet _this, ArrayList<Widget> w){
     // println("  setupWidgets focus widget -- " + millis());
     */
 
+    w_markerChannel = new W_MarkerChannel(_this);
+    w_markerChannel.setTitle("Marker Channel");
+    addWidget(w_markerChannel, w);
 }
 
 //========================================================================================

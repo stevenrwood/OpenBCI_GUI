@@ -55,10 +55,10 @@ abstract class Board implements DataSource {
             println("getdata returned " + numSamples + " samples of " + channelCount + " channels.  cb = " + (numSamples * channelCount * 8));
         }
 
-        if (auxInputRunning) {
 
+        if (argumentParser.auxInputExecutable != null) {
             for (int i = 0; i < numSamples; i++) {
-                double marker = readMarker();   // readMarker function also sets markerTimestamp global variable
+                double marker = auxInputRunning ? readMarker() : 0.0;       // readMarker function also sets markerTimestamp global variable
                 double timestamp = dataThisFrame[getTimestampChannel()][i];
                 if (markerTimestamp != 0.0) {
                     if (marker < 0) {
@@ -66,11 +66,12 @@ abstract class Board implements DataSource {
                         // and stop capturing after second negative mark (-200 or end input)
                         capturingMarks = !capturingMarks;
                         println("Capturing marks: " + capturingMarks + "  Mark: " + marker);
+                        dataThisFrame[markerChannel][i] = 0.0;
                         continue;
                     }
 
                     if (capturingMarks) {
-                        double delta = markerTimestamp - timestamp;
+                        double delta = timestamp - markerTimestamp;
                         if (marker != 0.0) {
                             // Scale numbers for display in analog channel
                             marker = ((marker * marker) + 1) * 100.0;
