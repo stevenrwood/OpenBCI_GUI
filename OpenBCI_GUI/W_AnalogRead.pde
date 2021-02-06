@@ -53,7 +53,11 @@ class W_AnalogRead extends Widget {
         // addDropdown("Spillover", "Spillover", Arrays.asList("False", "True"), 0);
 
         //set number of analog reads
-        numAnalogReadBars = 3;
+        if (selectedProtocol == BoardProtocol.WIFI) {
+            numAnalogReadBars = 2;
+        } else {
+            numAnalogReadBars = 3;
+        }
 
         xF = float(x); //float(int( ... is a shortcut for rounding the float down... so that it doesn't creep into the 1px margin
         yF = float(y);
