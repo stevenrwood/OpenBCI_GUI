@@ -39,7 +39,7 @@
 /////////////////////////////////
 class SessionSettings {
     //Current version to save to JSON
-    String settingsVersion = "3.0.0";
+    String settingsVersion = "3.1.0";
     //for screen resizing
     boolean screenHasBeenResized = false;
     float timeOfLastScreenResize = 0;
@@ -73,6 +73,9 @@ class SessionSettings {
     //Analog Read settings
     int arVertScaleSave; //updates in VertScale_AR()
     int arHorizScaleSave; //updates in Duration_AR()
+    //Marker Channel settings
+    int mcVertScaleSave; //updates in VertScale_AR()
+    int mcHorizScaleSave; //updates in Duration_AR()
     //Headplot settings
     int hpIntensitySave;
     int hpPolaritySave;
@@ -151,6 +154,10 @@ class SessionSettings {
     String[] arVertScaleArray = {"Auto", "50", "100", "200", "400", "1000", "10000"};
     String[] arHorizScaleArray = {"Sync", "1 sec", "3 sec", "5 sec", "10 sec", "20 sec"};
 
+    //Used to set text in dropdown menus when loading Marker Channel settings
+    String[] mcVertScaleArray = {"Auto", "50", "100", "200", "400", "1000", "10000"};
+    String[] mcHorizScaleArray = {"Sync", "1 sec", "3 sec", "5 sec", "10 sec", "20 sec"};
+
     //Used to set text in dropdown menus when loading Head Plot settings
     String[] hpIntensityArray = {"4x", "2x", "1x", "0.5x", "0.2x", "0.02x"};
     String[] hpPolarityArray = {"+/-", " + "};
@@ -174,6 +181,10 @@ class SessionSettings {
     //Load Analog Read dropdown variables
     int loadAnalogReadVertScale;
     int loadAnalogReadHorizScale;
+
+    //Load Marker Channel dropdown variables
+    int loadMarkerChannelVertScale;
+    int loadMarkerChannelHorizScale;
 
     //Load FFT dropdown variables
     int fftMaxFrqLoad;
@@ -311,10 +322,6 @@ class SessionSettings {
     ////////////////////////////////////////////////////////////////
     void init() {
         String defaultSettingsFileToSave = getPath("Default", eegDataSource, nchan);
-        int defaultNumChanLoaded = 0;
-        int defaultLoadedDataSource = 0;
-        String defaultSettingsVersion = "";
-        String defaultGUIVersion = "";
 
         //Take a snapshot of the default GUI settings on every system init
         println("InitSettings: Saving Default Settings to file!");
@@ -363,6 +370,8 @@ class SessionSettings {
         saveGlobalSettings.setInt("Bandpass Filter", dataProcessing.bpRange.getIndex());
         saveGlobalSettings.setInt("Analog Read Vert Scale", arVertScaleSave);
         saveGlobalSettings.setInt("Analog Read Horiz Scale", arHorizScaleSave);
+        saveGlobalSettings.setInt("Marker Channel Vert Scale", mcVertScaleSave);
+        saveGlobalSettings.setInt("Marker Channel Horiz Scale", mcHorizScaleSave);
         if (currentBoard instanceof SmoothingCapableBoard) {
             saveGlobalSettings.setBoolean("Data Smoothing", ((SmoothingCapableBoard)currentBoard).getSmoothingActive());
         }
@@ -580,6 +589,8 @@ class SessionSettings {
         int loadBandpassSetting = loadGlobalSettings.getInt("Bandpass Filter");
         Boolean loadExpertModeToggle = loadGlobalSettings.getBoolean("Expert Mode");
         Boolean loadDataSmoothingSetting = (currentBoard instanceof SmoothingCapableBoard) ? loadGlobalSettings.getBoolean("Data Smoothing") : null;
+        loadMarkerChannelVertScale = loadGlobalSettings.getInt("Analog Read Vert Scale");
+        loadMarkerChannelHorizScale = loadGlobalSettings.getInt("Analog Read Horiz Scale");
 
         //get the FFT settings
         JSONObject loadFFTSettings = loadSettingsJSONData.getJSONObject(kJSONKeyFFT);
@@ -815,6 +826,13 @@ class SessionSettings {
             Duration_AR(loadAnalogReadHorizScale);
                 w_analogRead.cp5_widget.getController("Duration_AR").getCaptionLabel().setText(arHorizScaleArray[loadAnalogReadHorizScale]);
         }
+
+        ////////Apply Marker Channel settings
+        VertScale_MC(loadMarkerChannelVertScale);
+            w_markerChannel.cp5_widget.getController("VertScale_MC").getCaptionLabel().setText(mcVertScaleArray[loadMarkerChannelVertScale]);
+
+        Duration_MC(loadMarkerChannelHorizScale);
+            w_markerChannel.cp5_widget.getController("Duration_MC").getCaptionLabel().setText(mcHorizScaleArray[loadMarkerChannelHorizScale]);
 
         ////////////////////////////Apply Headplot settings
         Intensity(hpIntensityLoad);
@@ -1184,6 +1202,7 @@ void loadConfigFile(File selection) {
                 }
         } catch (Exception e) {
             println("SessionSettings: Incompatible settings file or other error");
+            e.printStackTrace();
             if (settings.chanNumError == true) {
                 outputError("Settings Error:  Channel Number Mismatch Detected");
             } else if (settings.dataSourceError == true) {
