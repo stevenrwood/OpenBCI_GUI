@@ -8,7 +8,7 @@
 #   https://github.com/OpenBCI/OpenBCI_GUI/releases
 #
 #   Usage: > python release_script/make-release.py
-#   No warranty. Use at your own risk. 
+#   No warranty. Use at your own risk.
 #
 #########################################################################################
 
