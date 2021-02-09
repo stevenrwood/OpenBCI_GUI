@@ -11,6 +11,7 @@ class ArgumentParser {
     public String ipAddress;
     public int ipPort;
     public String auxInputExecutable;
+    public String auxInputCommandLine;
     public String[] auxInputCommandLineTokens;
     public File defaultUserSettingsFile;
     public String playBackFile;
@@ -74,7 +75,8 @@ class ArgumentParser {
             }
             else
             if (havePossibleValue && arg.equalsIgnoreCase("--auxInput")) {
-                auxInputCommandLineTokens = possibleValue.split("[\\s]");
+                auxInputCommandLine = possibleValue;
+                auxInputCommandLineTokens = auxInputCommandLine.split("[\\s]");
                 if (auxInputCommandLineTokens.length > 0) {
                     file= new File(auxInputCommandLineTokens[0]);
                     i += 1;

@@ -59,7 +59,6 @@ abstract class Board implements DataSource {
         if (argumentParser.auxInputExecutable != null) {
             for (int i = 0; i < numSamples; i++) {
                 double marker = auxInputRunning ? readMarker() : 0.0;       // readMarker function also sets markerTimestamp global variable
-                double timestamp = dataThisFrame[getTimestampChannel()][i];
                 if (markerTimestamp != 0.0) {
                     if (marker < 0) {
                         // Start capturing after first negative mark (-100 or start input)
@@ -71,6 +70,7 @@ abstract class Board implements DataSource {
                     }
 
                     if (capturingMarks) {
+                        double timestamp = dataThisFrame[getTimestampChannel()][i];
                         double delta = timestamp - markerTimestamp;
                         if (marker != 0.0) {
                             // Scale numbers for display in analog channel
