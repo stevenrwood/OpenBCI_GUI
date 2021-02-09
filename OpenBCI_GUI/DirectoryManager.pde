@@ -48,7 +48,7 @@ class DirectoryManager {
     public String getConsoleLogFilePath() {
         String fileName = "Console_" + getFileNameDateTime();
         if (alternateFolderLayout) {
-            return getSessionFilePath(fileName + ".log");
+            return sessionPath != null ? getSessionFilePath(fileName + ".log") : null;
         } else {
             return getConsoleDataPath() + fileName + ".txt";
         }

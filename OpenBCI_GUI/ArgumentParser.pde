@@ -224,8 +224,12 @@ class ArgumentParser {
             // Copy sample data to the Users' Documents folder +  create Recordings folder
             directoryManager.init(true);
 
-            directoryManager.setSessionName(sessionName);
-
+            // No session folder needed for playback
+            if (dataSource != DATASOURCE_PLAYBACKFILE) {
+                directoryManager.setSessionName(sessionName);
+            } else {
+                sessionName = null;
+            }
             if (settingsFilePrefix != null) {
                 defaultUserSettingsFile = new File(directoryManager.getSettingsPath() + File.separator + settingsFilePrefix + "UserSettings.json");
                 println("Default user settings file: " + defaultUserSettingsFile.getAbsolutePath() + "  Exists: " + str(defaultUserSettingsFile.exists()));

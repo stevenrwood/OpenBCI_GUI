@@ -1,5 +1,5 @@
 @if "%_echo%" == "" echo off
-if EXISTS \\fileserver\user\stevew\BCIGame\v1.5\bcigame.exe (
+if EXIST \\fileserver\user\stevew\BCIGame\v1.5\bcigame.exe (
     set bcigamePath=\\fileserver\user\stevew\BCIGame\v1.5
 ) else (
     set bcigamePath=%USERPROFILE%\bcigame

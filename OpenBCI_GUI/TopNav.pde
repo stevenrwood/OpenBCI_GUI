@@ -392,6 +392,7 @@ class TopNav {
         {
             channels = argumentParser.allChannels;
         }
+        w_fft.fftChanSelect.setCheckList(channels);
         w_timeSeries.tsChanSelect.setCheckList(channels);
         w_bandPower.bpChanSelect.setCheckList(channels);
         return !currentState;

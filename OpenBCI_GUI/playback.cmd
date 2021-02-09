@@ -18,10 +18,8 @@ goto :eof
 :findnewestfile
 for /F "tokens=1 delims=[] " %%i in ('dir /B /O-D %1') do (
     if /I "%%i" NEQ "Loading" (
-        echo IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII=%%i %~dp1  %~dp1%%i\
-        for /F "tokens=1" %%o in ('dir /B %~dp1%%i\OpenBCI*.csv') do (
+        for /F "tokens=1" %%o in ('dir /B %~dp1%%i\OpenBCI*.csv 2^>nul') do (
             if /I "%%o" NEQ "Loading" (
-                echo CSVFile=%%o
                 set _CSVFILE=%~dp1%%i\%%o
                 goto :eof
             )

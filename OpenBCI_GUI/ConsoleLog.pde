@@ -307,43 +307,23 @@ class CustomOutputStream extends PrintStream {
     private StringList data;
     private PrintWriter fileOutput;
     private Textarea textArea;
-    private final String filePath = directoryManager.getConsoleLogFilePath();
-    private PrintWriter sessionFileOutput;
+    private final String filePath = directoryManager.getConsoleLogFilePath();   // Can return null
 
     public CustomOutputStream(OutputStream out) {
         super(out);
         data = new StringList();
-        // initialize the printwriter just in case the file open fails
-        fileOutput = new PrintWriter(out);
+        if (filePath != null) {
+            // initialize the printwriter just in case the file open fails
+            fileOutput = new PrintWriter(out);
 
-        // create log file
-        try {
-            fileOutput = createWriter(filePath);
-        }
-        catch (RuntimeException e) {
-            println("Error! Failed to open " + filePath + " for write.");
-            println(e);
-        }
-    }
-
-    public void openSessionConsoleLog(String sessionFilePath)
-    {
-        // create log file
-        try {
-            sessionFileOutput = createWriter(sessionFilePath);
-        }
-        catch (RuntimeException e) {
-            sessionFileOutput = null;
-            println("Error! Failed to open " + sessionFilePath + " for write.");
-            println(e);
-        }
-    }
-
-    public void closeSessionConsoleLog()
-    {
-        if (sessionFileOutput != null) {
-            sessionFileOutput.close();
-            sessionFileOutput = null;
+            // create log file
+            try {
+                fileOutput = createWriter(filePath);
+            }
+            catch (RuntimeException e) {
+                println("Error! Failed to open " + filePath + " for write.");
+                println(e);
+            }
         }
     }
 
@@ -354,15 +334,10 @@ class CustomOutputStream extends PrintStream {
         // add to array
         data.append(string);
 
-        // print to file
-        fileOutput.print(string);
-        fileOutput.flush();
-
-        // if active session log, print to it as well.
-        //
-        if (sessionFileOutput != null) {
-            sessionFileOutput.print(string);
-            sessionFileOutput.flush();
+        if (fileOutput != null) {
+            // print to file
+            fileOutput.print(string);
+            fileOutput.flush();
         }
 
         // add to text area, if registered
@@ -381,13 +356,6 @@ class CustomOutputStream extends PrintStream {
         // print to file
         fileOutput.print(string);
         fileOutput.flush();
-
-        // if active session log, print to it as well.
-        //
-        if (sessionFileOutput != null) {
-            sessionFileOutput.print(string);
-            sessionFileOutput.flush();
-        }
 
         // add to text area, if registered
         if (textArea != null) {
