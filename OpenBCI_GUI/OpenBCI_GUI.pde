@@ -655,6 +655,7 @@ void initSystem() {
 
     if (argumentParser.defaultUserSettingsFile != null && argumentParser.defaultUserSettingsFile.exists()) {
         loadConfigFile(argumentParser.defaultUserSettingsFile);
+        argumentParser.initializeChannelGroups();
         settings.expertModeToggle = true;
     }
 

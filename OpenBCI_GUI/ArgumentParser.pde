@@ -17,9 +17,11 @@ class ArgumentParser {
     public String playBackFile;
     public BoardIds boardId;
     public int[] allChannels;
+    public int[] daisyChannels;
     public int[] eegChannels;
     public int[] emgChannels;
     public int[] eogChannels;
+    public boolean daisyChannelsEnabled;
     public boolean eegChannelsEnabled;
     public boolean emgChannelsEnabled;
     public boolean eogChannelsEnabled;
@@ -200,6 +202,9 @@ class ArgumentParser {
                 emgChannels = new int[] {9, 12, 14, 16};
                 eogChannels = new int[] {11, 13};
             }
+            else if (dataSource == DATASOURCE_CYTON && numberOfChannels == 16) {
+                daisyChannels = new int[] {1, 2, 3, 4, 5, 6, 7, 8};
+            }
 
             println("Debug: " + isVerbose);
             println("SessionName: " + sessionName);
@@ -241,6 +246,25 @@ class ArgumentParser {
         }
 
         return valid;
+    }
+
+    public void initializeChannelGroups() {
+        boolean enabled = toggleChannelGroup(true, allChannels);
+        daisyChannelsEnabled = enabled;
+        eegChannelsEnabled = enabled;
+        emgChannelsEnabled = enabled;
+        eogChannelsEnabled = enabled;
+    }
+
+    public boolean toggleChannelGroup(boolean currentState, int[] channels) {
+        if (currentState)
+        {
+            channels = allChannels;
+        }
+        w_fft.fftChanSelect.setCheckList(channels);
+        w_timeSeries.tsChanSelect.setCheckList(channels);
+        w_bandPower.bpChanSelect.setCheckList(channels);
+        return !currentState;
     }
 
     private String findFirstOpenBCIDongle() {
@@ -298,6 +322,10 @@ class ArgumentParser {
         // Arguments to consume now.
         consumed = false;
     }
+
+
+
+
 }
 
 public class Command {

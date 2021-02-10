@@ -29,6 +29,7 @@ class TopNav {
     public Button smoothingButton;
 
     public Button auxButton;
+    public Button daisyButton;
     public Button eegButton;
     public Button emgButton;
     public Button eogButton;
@@ -107,12 +108,9 @@ class TopNav {
             pos_x += SUBNAV_BUT_W + PAD_3;
         }
         
-        //
-        // If aux input exectable given on command line, then create the button to start/stop it.
-        //
-        if (argumentParser.auxInputExecutable != null && eegDataSource != DATASOURCE_PLAYBACKFILE) {
-            createToggleAuxInputButton(auxButton_pressToStart_txt, pos_x, SUBNAV_BUT_Y, DATASTREAM_BUT_W, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
-            pos_x += DATASTREAM_BUT_W + PAD_3;
+        if (argumentParser.daisyChannels != null) {
+            createToggleDaisyChannelsButton("Daisy", pos_x, SUBNAV_BUT_Y, 40, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
+            pos_x += 40 + 2;
         }
 
         if (argumentParser.eegChannels != null) {
@@ -127,6 +125,15 @@ class TopNav {
 
         if (argumentParser.eogChannels != null) {
             createToggleEogChannelsButton("EOG", pos_x, SUBNAV_BUT_Y, 40, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
+        }
+
+        //
+        // If aux input exectable given on command line, then create the button to start/stop it.
+        // if not in playback mode.
+        //
+        if (argumentParser.auxInputExecutable != null && eegDataSource != DATASOURCE_PLAYBACKFILE) {
+            createToggleAuxInputButton(auxButton_pressToStart_txt, pos_x, SUBNAV_BUT_Y, DATASTREAM_BUT_W, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
+            pos_x += DATASTREAM_BUT_W + PAD_3;
         }
 
         //updateSecondaryNavButtonsColor();
@@ -318,6 +325,11 @@ class TopNav {
                 auxButton.setVisible(currentBoard.isStreaming());
             }
 
+            if (daisyButton != null) {
+                daisyButton.setColorBackground(argumentParser.daisyChannelsEnabled ? enabledColor : disabledColor);
+                daisyButton.setVisible(isSession);
+            }
+
             if (eegButton != null) {
                 eegButton.setColorBackground(argumentParser.eegChannelsEnabled ? enabledColor : disabledColor);
                 eegButton.setVisible(isSession);
@@ -385,18 +397,6 @@ class TopNav {
         configSelector.mouseReleased();
     } //end mouseReleased
 
-
-    // Set active channels across all widgets that have channelSelect objects.
-    boolean configureActiveChannels(boolean currentState, int[] channels) {
-        if (currentState)
-        {
-            channels = argumentParser.allChannels;
-        }
-        w_fft.fftChanSelect.setCheckList(channels);
-        w_timeSeries.tsChanSelect.setCheckList(channels);
-        w_bandPower.bpChanSelect.setCheckList(channels);
-        return !currentState;
-    }
 
     //Load data from the latest release page using Github API and compare to local version
     public Boolean guiVersionIsUpToDate() {
@@ -517,11 +517,21 @@ class TopNav {
     }
 
 
+    private void createToggleDaisyChannelsButton(String text, int _x, int _y, int _w, int _h, PFont font, int _fontSize, color _bg, color _textColor) {
+        daisyButton = createTNButton("toggleDaisyChannelsButton", text, _x, _y, _w, _h, font, _fontSize, _bg, _textColor);
+        daisyButton.onRelease(new CallbackListener() {
+            public void controlEvent(CallbackEvent theEvent) {
+                argumentParser.daisyChannelsEnabled = argumentParser.toggleChannelGroup(argumentParser.daisyChannelsEnabled, argumentParser.daisyChannels);
+            }
+        });
+        daisyButton.setDescription("Press this button to enable just 8 channels");
+    }
+
     private void createToggleEegChannelsButton(String text, int _x, int _y, int _w, int _h, PFont font, int _fontSize, color _bg, color _textColor) {
         eegButton = createTNButton("toggleEegChannelsButton", text, _x, _y, _w, _h, font, _fontSize, _bg, _textColor);
         eegButton.onRelease(new CallbackListener() {
             public void controlEvent(CallbackEvent theEvent) {
-                argumentParser.eegChannelsEnabled = configureActiveChannels(argumentParser.eegChannelsEnabled, argumentParser.eegChannels);
+                argumentParser.eegChannelsEnabled = argumentParser.toggleChannelGroup(argumentParser.eegChannelsEnabled, argumentParser.eegChannels);
             }
         });
         eegButton.setDescription("Press this button to enable just EEG channels");
@@ -531,7 +541,7 @@ class TopNav {
         emgButton = createTNButton("toggleEegChannelsButton", text, _x, _y, _w, _h, font, _fontSize, _bg, _textColor);
         emgButton.onRelease(new CallbackListener() {
             public void controlEvent(CallbackEvent theEvent) {
-                argumentParser.emgChannelsEnabled = configureActiveChannels(argumentParser.emgChannelsEnabled, argumentParser.emgChannels);
+                argumentParser.emgChannelsEnabled = argumentParser.toggleChannelGroup(argumentParser.emgChannelsEnabled, argumentParser.emgChannels);
             }
         });
         emgButton.setDescription("Press this button to enable just EMG channels");
@@ -541,7 +551,7 @@ class TopNav {
         eogButton = createTNButton("toggleEegChannelsButton", text, _x, _y, _w, _h, font, _fontSize, _bg, _textColor);
         eogButton.onRelease(new CallbackListener() {
             public void controlEvent(CallbackEvent theEvent) {
-                argumentParser.eogChannelsEnabled = configureActiveChannels(argumentParser.eogChannelsEnabled, argumentParser.eogChannels);
+                argumentParser.eogChannelsEnabled = argumentParser.toggleChannelGroup(argumentParser.eogChannelsEnabled, argumentParser.eogChannels);
             }
         });
         eogButton.setDescription("Press this button to enable just EEG channels");
