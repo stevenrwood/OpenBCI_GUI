@@ -45,7 +45,7 @@ abstract class Board implements DataSource {
     public void update() {
         int channelCount = getTotalChannelCount();
         // Analog channel on Cyton and Battery channel on Galea
-        int markerChannel = getTimestampChannel() - 1;
+        int markerChannel = getMarkerChannel();
 
         updateInternal();
 
@@ -53,7 +53,6 @@ abstract class Board implements DataSource {
         int numSamples = dataThisFrame[0].length;
         if (numSamples > 0) {
             println("getdata returned " + numSamples + " samples of " + channelCount + " channels.  cb = " + (numSamples * channelCount * 8));
-            println("auxInputExe: " + argumentParser.auxInputExecutable + "  Running: " + auxInputRunning);
         }
 
 

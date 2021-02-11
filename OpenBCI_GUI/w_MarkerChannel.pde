@@ -248,7 +248,7 @@ class MarkerChannelBar{
 
     void updatePlotPoints() {
         List<double[]> allData = currentBoard.getData(nPoints);
-        int[] markerChannels = new int[] {currentBoard.getTimestampChannel() - 1};
+        int[] markerChannels = new int[] {currentBoard.getMarkerChannel()};
 
         if (markerChannels.length == 0) {
             return;

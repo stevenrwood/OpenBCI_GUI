@@ -573,10 +573,6 @@ class ChannelSelect {
         isVisible = b;
     }
 
-    public int getCountActiveChannels() {
-        return activeChan.size();
-    }
-
     public void deactivateAllButtons() {
         activeChan.clear();
         for (int i = 0; i < nchan; i++) {

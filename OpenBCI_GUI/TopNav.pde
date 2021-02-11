@@ -132,7 +132,6 @@ class TopNav {
         // if not in playback mode.
         //
         if (argumentParser.auxInputExecutable != null && eegDataSource != DATASOURCE_PLAYBACKFILE) {
-            println("auxButton - dataSource: " + eegDataSource);
             createToggleAuxInputButton(auxButton_pressToStart_txt, pos_x, SUBNAV_BUT_Y, DATASTREAM_BUT_W, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
             pos_x += DATASTREAM_BUT_W + PAD_3;
         }

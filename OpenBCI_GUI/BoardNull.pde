@@ -47,6 +47,11 @@ class BoardNull extends Board {
     }
     
     @Override
+    public int getMarkerChannel() {
+        return 0;
+    }
+    
+    @Override
     public int getSampleIndexChannel() {
         return 0;
     }

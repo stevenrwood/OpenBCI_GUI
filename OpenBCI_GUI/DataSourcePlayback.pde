@@ -120,7 +120,7 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
         markData = new ArrayList<double[]>(1000);
         currentMarkIndex = -1;
         double previousMarkValue = 0.0;
-        int markChannel = getTimestampChannel() - 1;
+        int markChannel = getMarkerChannel();
 
         for (int iData=0; iData<dataLength; iData++) {
             String line = lines[dataStart + iData];
@@ -214,6 +214,11 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
     @Override
     public int getTimestampChannel() {
         return underlyingBoard.getTimestampChannel();
+    }
+
+    @Override
+    public int getMarkerChannel() {
+        return underlyingBoard.getMarkerChannel();
     }
 
     @Override

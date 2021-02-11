@@ -11,6 +11,7 @@ abstract class BoardBrainFlow extends Board {
     protected int samplingRateCache = -1;
     protected int sampleIndexChannelCache = -1;
     protected int timeStampChannelCache = -1;
+    protected int markerChannelCache = -1;
     protected int totalChannelsCache = -1;
     protected int[] exgChannelsCache = null;
     protected int[] otherChannelsCache = null;
@@ -196,6 +197,23 @@ abstract class BoardBrainFlow extends Board {
         }
 
         return timeStampChannelCache;
+    }
+    
+    @Override
+    public int getMarkerChannel() {
+        return getTimestampChannel() - 1;
+      /*
+        if(markerChannelCache < 0) {
+            try {
+                // markerChannelCache = BoardShim.get_marker_channel(getBoardIdInt());
+            } catch (BrainFlowError e) {
+                println("WARNING: failed to get marker channel from BoardShim");
+                e.printStackTrace();
+            }
+        }
+
+        return markerChannelCache;
+      */
     }
     
     @Override
