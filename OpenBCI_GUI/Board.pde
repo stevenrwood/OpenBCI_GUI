@@ -53,6 +53,7 @@ abstract class Board implements DataSource {
         int numSamples = dataThisFrame[0].length;
         if (numSamples > 0) {
             println("getdata returned " + numSamples + " samples of " + channelCount + " channels.  cb = " + (numSamples * channelCount * 8));
+            println("auxInputExe: " + argumentParser.auxInputExecutable + "  Running: " + auxInputRunning);
         }
 
 

@@ -653,10 +653,12 @@ void initSystem() {
     //Make sure topNav buttons draw in the correct spot
     topNav.screenHasBeenResized(width, height);
 
-    if (argumentParser.defaultUserSettingsFile != null && argumentParser.defaultUserSettingsFile.exists()) {
-        loadConfigFile(argumentParser.defaultUserSettingsFile);
+    if (argumentParser.defaultUserSettingsFile != null) {
+        if (argumentParser.defaultUserSettingsFile.exists()) {
+            loadConfigFile(argumentParser.defaultUserSettingsFile);
+        }
         argumentParser.initializeChannelGroups();
-        settings.expertModeToggle = true;
+        topNav.configSelector.toggleExpertMode(true);
     }
 
     midInit = false;
@@ -941,6 +943,7 @@ void updateToNChan(int _nchan) {
     nchan = _nchan;
     settings.slnchan = _nchan; //used in SoftwareSettings.pde only
     fftBuff = new FFT[nchan];  //reinitialize the FFT buffer
+    argumentParser.setNumberOfChannels(_nchan);
     println("Channel count set to " + str(nchan));
 }
 

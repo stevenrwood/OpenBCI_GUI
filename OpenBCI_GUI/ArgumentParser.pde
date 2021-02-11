@@ -192,19 +192,7 @@ class ArgumentParser {
                 boardId = numberOfChannels == 16 ? BoardIds.CYTON_DAISY_WIFI_BOARD : BoardIds.CYTON_WIFI_BOARD;
             }
 
-            allChannels = new int[numberOfChannels];
-            for (int i=0; i<numberOfChannels; i++) {
-                allChannels[i] = i + 1;
-            }
-
-            if (dataSource == DATASOURCE_GALEA) {
-                eegChannels = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 10, 15};
-                emgChannels = new int[] {9, 12, 14, 16};
-                eogChannels = new int[] {11, 13};
-            }
-            else if (dataSource == DATASOURCE_CYTON && numberOfChannels == 16) {
-                daisyChannels = new int[] {1, 2, 3, 4, 5, 6, 7, 8};
-            }
+            setNumberOfChannels(numberOfChannels);
 
             println("Debug: " + isVerbose);
             println("SessionName: " + sessionName);
@@ -246,6 +234,23 @@ class ArgumentParser {
         }
 
         return valid;
+    }
+
+    public void setNumberOfChannels(int _nchan) {
+        numberOfChannels = _nchan;
+        allChannels = new int[numberOfChannels];
+        for (int i=0; i<numberOfChannels; i++) {
+            allChannels[i] = i + 1;
+        }
+
+        if (dataSource == DATASOURCE_GALEA) {
+            eegChannels = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 10, 15};
+            emgChannels = new int[] {9, 12, 14, 16};
+            eogChannels = new int[] {11, 13};
+        }
+        else if (dataSource == DATASOURCE_CYTON && numberOfChannels == 16) {
+            daisyChannels = new int[] {1, 2, 3, 4, 5, 6, 7, 8};
+        }
     }
 
     public void initializeChannelGroups() {

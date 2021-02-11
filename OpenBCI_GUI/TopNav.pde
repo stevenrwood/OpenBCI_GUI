@@ -98,11 +98,11 @@ class TopNav {
         createToggleDataStreamButton(stopButton_pressToStart_txt, PAD_3, SUBNAV_BUT_Y, DATASTREAM_BUT_W, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
         createFiltNotchButton("Notch\n" + dataProcessing.getShortNotchDescription(), PAD_3*2 + toggleDataStreamingButton.getWidth(), SUBNAV_BUT_Y, SUBNAV_BUT_W, SUBNAV_BUT_H, p5, 12, SUBNAV_LIGHTBLUE, WHITE);
         createFiltBPButton("BP Filt\n" + dataProcessing.getShortFilterDescription(), PAD_3*3 + toggleDataStreamingButton.getWidth() + SUBNAV_BUT_W, SUBNAV_BUT_Y, SUBNAV_BUT_W, SUBNAV_BUT_H, p5, 12, SUBNAV_LIGHTBLUE, WHITE);
+        int pos_x = (int)filtBPButton.getPosition()[0] + filtBPButton.getWidth() + PAD_3;
 
         //Appears at Top Right SubNav while in a Session
         createLayoutButton("Layout", width - 3 - 60, SUBNAV_BUT_Y, 60, SUBNAV_BUT_H, h4, 14, SUBNAV_LIGHTBLUE, WHITE);
 
-        int pos_x = (int)filtBPButton.getPosition()[0] + filtBPButton.getWidth() + PAD_3;
         if (currentBoard instanceof SmoothingCapableBoard) {
             createSmoothingButton(getSmoothingString(), pos_x, SUBNAV_BUT_Y, SUBNAV_BUT_W, SUBNAV_BUT_H, p5, 12, SUBNAV_LIGHTBLUE, WHITE);
             pos_x += SUBNAV_BUT_W + PAD_3;
@@ -132,8 +132,12 @@ class TopNav {
         // if not in playback mode.
         //
         if (argumentParser.auxInputExecutable != null && eegDataSource != DATASOURCE_PLAYBACKFILE) {
+            println("auxButton - dataSource: " + eegDataSource);
             createToggleAuxInputButton(auxButton_pressToStart_txt, pos_x, SUBNAV_BUT_Y, DATASTREAM_BUT_W, SUBNAV_BUT_H, h4, 14, isSelected_color, OPENBCI_DARKBLUE);
             pos_x += DATASTREAM_BUT_W + PAD_3;
+        }
+        else {
+            auxButton = null;
         }
 
         //updateSecondaryNavButtonsColor();
@@ -244,10 +248,6 @@ class TopNav {
             previousSystemMode = systemMode;
         }
 
-        if (previousAuxInputRunning != auxInputRunning) {
-            println("Prev: " + previousAuxInputRunning + "  Cur: " + auxInputRunning);
-        }
-
         if (previousAuxInputRunning && !auxInputRunning) {
             // Aux input processed exited so stop the current stream,
             // after first saving away log file path so we can switch to
@@ -322,7 +322,8 @@ class TopNav {
                     auxButton.getCaptionLabel().setText(auxButton_pressToStart_txt);
                     auxButton.setColorBackground(disabledColor);
                 }
-                auxButton.setVisible(currentBoard.isStreaming());
+
+                auxButton.setVisible(eegDataSource == DATASOURCE_PLAYBACKFILE ? false : currentBoard.isStreaming());
             }
 
             if (daisyButton != null) {

@@ -1010,16 +1010,16 @@ class SessionSettings {
         w_timeSeries.setTSHorizScale(loadTimeSeriesSettings.getInt("Time Series Horiz Scale"));
         w_timeSeries.cp5_widget.getController("Duration").getCaptionLabel().setText(w_timeSeries.getTSHorizScale().getString());
 
-        JSONArray loadTSChan = loadTimeSeriesSettings.getJSONArray("activeChannels");
+        JSONArray loadTSActiveChan = loadTimeSeriesSettings.getJSONArray("activeChannels");
         w_timeSeries.tsChanSelect.deactivateAllButtons();
         try {
-            for (int i = 0; i < loadTSChan.size(); i++) {
-                w_timeSeries.tsChanSelect.setToggleState(loadTSChan.getInt(i), true);
+            for (int i = 0; i < loadTSActiveChan.size(); i++) {
+                w_timeSeries.tsChanSelect.setToggleState(loadTSActiveChan.getInt(i), true);
             }
         } catch (Exception e) {
             println("Settings: Exception caught applying time series settings " + e);
         }
-        verbosePrint("Settings: Time Series Active Channels: " + loadBPActiveChans);
+        verbosePrint("Settings: Time Series Active Channels: " + loadTSActiveChan);
             
     } //end loadApplyTimeSeriesSettings
 
