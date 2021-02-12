@@ -5,6 +5,7 @@ abstract class Board implements DataSource {
     private FixedStack<double[]> accumulatedData = new FixedStack<double[]>();
     private double[][] dataThisFrame;
     private boolean capturingMarks;
+    private double previousMarkerTimestamp = -1.0;
     private PacketLossTracker packetLossTracker;
 
     // accessible by all boards, can be returned as valid empty data
@@ -44,14 +45,18 @@ abstract class Board implements DataSource {
     @Override
     public void update() {
         int channelCount = getTotalChannelCount();
+        int timestampChannel = getTimestampChannel();
         // Analog channel on Cyton and Battery channel on Galea
-        int markerChannel = getMarkerChannel();
+        int markerChannel = getTimestampChannel() - 1;
 
         updateInternal();
 
         dataThisFrame = getNewDataInternal();
         int numSamples = dataThisFrame[0].length;
         if (numSamples > 0) {
+            if (previousMarkerTimestamp == -1.0) {
+                previousMarkerTimestamp = dataThisFrame[timestampChannel][0];
+            }
             println("getdata returned " + numSamples + " samples of " + channelCount + " channels.  cb = " + (numSamples * channelCount * 8));
         }
 
@@ -70,12 +75,14 @@ abstract class Board implements DataSource {
                     }
 
                     if (capturingMarks) {
-                        double timestamp = dataThisFrame[getTimestampChannel()][i];
+                        double timestamp = dataThisFrame[timestampChannel][i];
                         double delta = timestamp - markerTimestamp;
                         if (marker != 0.0) {
                             // Scale numbers for display in analog channel
                             marker = ((marker * marker) + 1) * 100.0;
-                            println("Marker: " + marker + "  TimeStamp: " + timestamp + "  Delta: " + delta);
+                            println("Marker: " + marker + "  TimeStamp: " + timestamp + "  Delta: " + delta + "  Prev Marker Duration: " +
+                                    (markerTimestamp - previousMarkerTimestamp));
+                            previousMarkerTimestamp = markerTimestamp;
                         }
                     }
                 }
