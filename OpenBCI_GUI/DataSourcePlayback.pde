@@ -119,8 +119,10 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
         
         markData = new ArrayList<double[]>(1000);
         currentMarkIndex = -1;
-        double previousMarkValue = 0.0;
-        int markChannel = getMarkerChannel();
+        double previousMarkerValue = 0.0;
+        double previousMarkerTimestamp = 0.0;
+        int markerChannel = getMarkerChannel();
+        int timestampChannel = getTimestampChannel();
 
         for (int iData=0; iData<dataLength; iData++) {
             String line = lines[dataStart + iData];
@@ -129,18 +131,25 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
             double[] row = new double[getTotalChannelCount()];
             for (int iCol = 0; iCol < getTotalChannelCount(); iCol++) {
                 row[iCol] = Double.parseDouble(valStrs[iCol]);
-                if (containsMarks && iCol == markChannel && row[iCol] != 0.0 && row[iCol] != previousMarkValue) {
-                    double[] markInfo = new double[] {(double) iData, row[iCol]};
-                    println("MarkInfo - Index:" + markInfo[0] + "  Value: " + markInfo[1] + "  Prev: " + previousMarkValue);
-                    markData.add(markInfo);
-                    previousMarkValue = row[iCol];
-                }
+            }
+
+            if (iData == 0) {
+                previousMarkerTimestamp = row[timestampChannel];
+            }
+            if (containsMarks && row[markerChannel] != 0.0 && row[markerChannel] != previousMarkerValue) {
+                double[] markInfo = new double[] {(double) iData, row[markerChannel], row[timestampChannel] - previousMarkerTimestamp};
+                markData.add(markInfo);
+                previousMarkerValue = row[markerChannel];
+                previousMarkerTimestamp = row[timestampChannel];
             }
             rawData.add(row);
         }
         markData.trimToSize();
         println("#marks found: " + markData.size());
-
+        for (int i=0; i<markData.size(); i++) {
+            double[] markInfo = markData.get(i);
+            println("MarkInfo - Index:" + markInfo[0] + "  Value: " + markInfo[1] + "  Duration: " + markInfo[2]);
+        }
         return true;
     }
 
