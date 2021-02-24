@@ -12,7 +12,7 @@ class DirectoryManager {
     public String getFileNameDateTime() {
         return dateFormat.format(new Date());
     }
-    
+
     public String getGuiDataPath() {
         return guiDataPath;
     }
@@ -47,11 +47,14 @@ class DirectoryManager {
 
     public String getConsoleLogFilePath() {
         String fileName = "Console_" + getFileNameDateTime();
+        String result;
         if (alternateFolderLayout) {
-            return sessionPath != null ? getSessionFilePath(fileName + ".log") : null;
+            result = sessionPath != null ? getSessionFilePath(fileName + ".log") : null;
         } else {
-            return getConsoleDataPath() + fileName + ".txt";
+            result = getConsoleDataPath() + fileName + ".txt";
         }
+
+        return result;
     }
 
     public void init(boolean _alternateFolderLayout) {
@@ -75,7 +78,7 @@ class DirectoryManager {
                 println("OpenBCI_GUI::Setup: Error trying to delete old GUI Sample Data in Documents folder.");
             }
         }
-        
+
         if (!guiv5_fileToCheck.exists()) {
             copySampleDataFiles(directory, directoryName);
         } else {
@@ -115,5 +118,5 @@ class DirectoryManager {
             println("OpenBCI_GUI::Setup: Created \\Documents\\OpenBCI_GUI\\Recordings\\");
         }
     }
-    
+
 };

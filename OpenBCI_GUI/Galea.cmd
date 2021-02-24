@@ -39,14 +39,14 @@ if ERRORLEVEL 1 (
     set PRUN=%PROCESSING%\processing-java.exe --sketch=%USERPROFILE%\github\OpenBCI_GUI\OpenBCI_GUI --run
 )
 
-echo %PRUN% --galea --ipAddress %_GALEAIP% --auxinput "%bcigamePath% --game FollowMe --logFolder $session --openBCIPort $bciport --StimulusDelay 1000 --FeedbackDelay 500 --TrialCount 10 --openBCIPort $bciport"
-%PRUN% --galea --ipAddress %_GALEAIP% --auxinput "%bcigamePath% --game FollowMe --logFolder $session --openBCIPort $bciport --StimulusDelay 1000 --FeedbackDelay 500 --TrialCount 10 --openBCIPort $bciport"
+set _OpenBCICMD=%PRUN% --galea --ipAddress %_GALEAIP% --auxinput "%bcigamePath% --game FollowMe --logFolder $session --openBCIPort $bciport --StimulusDelay 1000 --FeedbackDelay 500 --TrialCount 10 --openBCIPort $bciport"
+echo %OpenBCICmd%
+%OpenBCICmd%
 %_POPD%
 goto :eof
 
 :setpath
 if EXIST %2 (
-    echo set %1=%~f2
     set %1=%~f2
     if "%3" == "1" (
         pushd %~dp2

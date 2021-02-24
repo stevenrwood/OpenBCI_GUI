@@ -38,7 +38,7 @@ abstract class Board implements DataSource {
 
     @Override
     public void stopStreaming() {
-        
+
         // empty
     }
 
@@ -57,7 +57,9 @@ abstract class Board implements DataSource {
             if (previousMarkerTimestamp == -1.0) {
                 previousMarkerTimestamp = dataThisFrame[timestampChannel][0];
             }
-            println("getdata returned " + numSamples + " samples of " + channelCount + " channels.  cb = " + (numSamples * channelCount * 8));
+            println("getdata returned " + numSamples +
+                    " samples of " + channelCount +
+                    " channels.  cb = " + (numSamples * channelCount * 8));
         }
 
 

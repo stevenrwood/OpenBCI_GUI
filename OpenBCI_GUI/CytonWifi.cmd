@@ -31,14 +31,14 @@ if ERRORLEVEL 1 (
     set PRUN=%PROCESSING%\processing-java.exe --sketch=%USERPROFILE%\github\OpenBCI_GUI\OpenBCI_GUI --run
 )
 
-echo %PRUN% --cyton --daisy --wifi --ipAddress 192.168.4.1 --auxinput "%bcigamePath% --game FollowMe --logFolder $session --openBCIPort $bciport --StimulusDelay 1000 --FeedbackDelay 500 --TrialCount 10 --openBCIPort $bciport
-%PRUN% --cyton --daisy --wifi --ipAddress 192.168.4.1 --auxinput "%bcigamePath% --game FollowMe --logFolder $session --openBCIPort $bciport --StimulusDelay 1000 --FeedbackDelay 500 --TrialCount 10 --openBCIPort $bciport
+set OpenBCICmd=%PRUN% --cyton --daisy --wifi --ipAddress 192.168.4.1 --auxinput "%bcigamePath% --logFolder $session --openBCIPort $bciport --TrialCount 10 --game Simple --StimulusDelay 1000 --FeedbackDelay 500"
+echo %OpenBCICmd%
+%OpenBCICmd%
 %_POPD%
 goto :eof
 
 :setpath
 if EXIST %2 (
-    echo set %1=%~f2
     set %1=%~f2
     if "%3" == "1" (
         pushd %~dp2

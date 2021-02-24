@@ -379,12 +379,14 @@ void setup() {
         osName += "Mac";
     }
 
-    println("Console Log Started at Local Time: " + directoryManager.getFileNameDateTime());
+    println("Console Log: " + outputStream.getFilePath());
     println("Screen Resolution: " + displayWidth + " X " + displayHeight);
     println(osName);
     println("Welcome to the Processing-based OpenBCI GUI!"); //Welcome line.
     println("For more information, please visit: https://openbci.github.io/Documentation/docs/06Software/01-OpenBCISoftware/GUIDocs");
-
+    if (argumentParser.sessionName != null) {
+        println("Session name: " + argumentParser.sessionName);
+    }
     settings = new SessionSettings();
     userPlaybackHistoryFile = directoryManager.getSettingsPath()+"UserPlaybackHistory.json";
 
@@ -405,7 +407,7 @@ void delayedSetup() {
     settings.heightOfLastScreen = height;
 
     setupContainers();
-    
+
     //listen for window resize ... used to adjust elements in application
     //Doesn't seem to work...
     frame.addComponentListener(new ComponentAdapter() {
@@ -649,7 +651,7 @@ void initSystem() {
         //After TopNav has been instantiated, default to Expert mode for Galea
         topNav.configSelector.toggleExpertMode(true);
     }
-    
+
     //Make sure topNav buttons draw in the correct spot
     topNav.screenHasBeenResized(width, height);
 
@@ -783,7 +785,7 @@ public void auxInputButtonWasPressed() {
 void haltSystem() {
     if (!systemHasHalted) { //prevents system from halting more than once\
         println("openBCI_GUI: haltSystem: Halting system for reconfiguration of settings...");
-        
+
         //Reset the text for the Start Session buttonscreen. Skip when reiniting board while already in playback mode session.
         if (!reinitRequested) {
             controlPanel.initBox.setInitSessionButtonText("START SESSION");
@@ -793,7 +795,7 @@ void haltSystem() {
             w_networking.stopNetwork();
             println("openBCI_GUI: haltSystem: Network streams stopped");
         }
-        
+
         stopRunning();  //stop data transfer
 
         topNav.resetStartStopButton();
@@ -801,8 +803,8 @@ void haltSystem() {
 
         //Save a snapshot of User's GUI settings if the system is stopped, or halted. This will be loaded on next Start System.
         //This method establishes default and user settings for all data modes
-        if (systemMode == SYSTEMMODE_POSTINIT && 
-            eegDataSource != DATASOURCE_GALEA && 
+        if (systemMode == SYSTEMMODE_POSTINIT &&
+            eegDataSource != DATASOURCE_GALEA &&
             eegDataSource != DATASOURCE_STREAMING) {
                 settings.save(settings.getPath("User", eegDataSource, nchan));
         }
