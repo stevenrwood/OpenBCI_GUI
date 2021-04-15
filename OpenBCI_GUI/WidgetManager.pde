@@ -23,7 +23,6 @@ W_AnalogRead w_analogRead;
 W_DigitalRead w_digitalRead;
 W_playback w_playback;
 W_Spectrogram w_spectrogram;
-W_AuraAux w_galeaAux;
 W_PacketLoss w_packetLoss;
 W_MarkerChannel w_markerChannel;
 
@@ -51,12 +50,6 @@ void setupWidgets(PApplet _this, ArrayList<Widget> w){
         w_playback = new W_playback(_this);
         w_playback.setTitle("Playback History");
         addWidget(w_playback, w);
-    }
-
-    if (galeaEnabled && currentBoard instanceof PPGCapableBoard && currentBoard instanceof EDACapableBoard) {
-        w_galeaAux = new W_AuraAux(_this);
-        w_galeaAux.setTitle("Galea Aux");
-        addWidget(w_galeaAux, w);
     }
 
     //only instantiate this widget if you are using a Ganglion board for live streaming
@@ -94,7 +87,7 @@ void setupWidgets(PApplet _this, ArrayList<Widget> w){
         w_digitalRead.setTitle("Digital Read");
         addWidget(w_digitalRead, w);
     }
-    
+
     if(currentBoard instanceof AnalogCapableBoard) {
         w_analogRead = new W_AnalogRead(_this);
         w_analogRead.setTitle("Analog Read");
@@ -106,7 +99,7 @@ void setupWidgets(PApplet _this, ArrayList<Widget> w){
         w_packetLoss.setTitle("Packet Loss");
         addWidget(w_packetLoss, w);
     }
-    
+
     //only instantiate these widgets if you are using a Cyton board for live streaming
     if(currentBoard instanceof AnalogCapableBoard){
         w_pulsesensor = new W_PulseSensor(_this);
@@ -227,10 +220,8 @@ class WidgetManager{
         if(visible){
             for(int i = 0; i < widgets.size(); i++){
                 if(widgets.get(i).getIsActive()){
-                    pushStyle();
                     widgets.get(i).draw();
                     widgets.get(i).drawDropdowns();
-                    popStyle();
                 }else{
                     if(widgets.get(i).widgetTitle.equals("Networking")){
                         try{

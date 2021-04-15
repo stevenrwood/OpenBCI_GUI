@@ -11,10 +11,11 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
 
     private boolean initialized = false;
     private boolean streaming = false;
-    
+
     private Board underlyingBoard = null;
     private int sampleRate = -1;
     private boolean containsMarks;
+    private int numChannels = 0;  // use it instead getTotalChannelCount() method for old playback files
 
     DataSourcePlayback(String filePath) {
         playbackFilePath = filePath;
@@ -24,7 +25,7 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
     public boolean initialize() {
         currentSample = 0;
         String[] lines = loadStrings(playbackFilePath);
-        
+
         if(!parseHeader(lines)) {
             return false;
         }
@@ -116,7 +117,7 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
 
         int dataLength = lines.length - dataStart;
         rawData = new ArrayList<double[]>(dataLength);
-        
+
         markData = new ArrayList<double[]>(1000);
         currentMarkIndex = -1;
         double previousMarkerValue = 0.0;
@@ -127,9 +128,13 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
         for (int iData=0; iData<dataLength; iData++) {
             String line = lines[dataStart + iData];
             String[] valStrs = line.split(",");
+            if (((valStrs.length - 1) != getTotalChannelCount()) && (numChannels == 0)) {
+                outputWarn("you are using old file for playback.");
+            }
+            numChannels = valStrs.length - 1;  // -1 becaise of gui's timestamps
 
-            double[] row = new double[getTotalChannelCount()];
-            for (int iCol = 0; iCol < getTotalChannelCount(); iCol++) {
+            double[] row = new double[numChannels];
+            for (int iCol = 0; iCol < numChannels; iCol++) {
                 row[iCol] = Double.parseDouble(valStrs[iCol]);
             }
 
@@ -170,7 +175,7 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
         timeOfLastUpdateMS += numNewSamplesThisFrame / sampleRateMS;
 
         currentSample += numNewSamplesThisFrame;
-        
+
         if (endOfFileReached()) {
             topNav.stopButtonWasPressed();
         }
@@ -209,12 +214,12 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
     public boolean isEXGChannelActive(int channelIndex) {
         return true;
     }
-    
+
     @Override
     public int[] getEXGChannels() {
         return underlyingBoard.getEXGChannels();
     }
-    
+
     @Override
     public int getNumEXGChannels() {
         return getEXGChannels().length;
@@ -257,15 +262,17 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
 
     @Override
     public int getTotalChannelCount() {
-        return underlyingBoard.getTotalChannelCount();
+        if (numChannels == 0)
+            return underlyingBoard.getTotalChannelCount();
+        return numChannels;
     }
 
     @Override
     public double[][] getFrameData() {
-        double[][] array = new double[getTotalChannelCount()][numNewSamplesThisFrame];
+        double[][] array = new double[numChannels][numNewSamplesThisFrame];
         List<double[]> list = getData(numNewSamplesThisFrame);
         for (int i = 0; i < numNewSamplesThisFrame; i++) {
-            for (int j = 0; j < getTotalChannelCount(); j++) {
+            for (int j = 0; j < numChannels; j++) {
                 array[j][i] = list.get(i)[j];
             }
         }
@@ -281,12 +288,12 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
         if (maxSamples > currentSample) {
             int sampleDiff = maxSamples - currentSample;
 
-            double[] emptyData = new double[getTotalChannelCount()];
+            double[] emptyData = new double[numChannels];
             ArrayList<double[]> newResult = new ArrayList(maxSamples);
             for (int i=0; i<sampleDiff; i++) {
                 newResult.add(emptyData);
             }
-            
+
             newResult.addAll(result);
             return newResult;
         }
@@ -295,7 +302,7 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
     }
 
     @Override
-    public boolean isAccelerometerActive() { 
+    public boolean isAccelerometerActive() {
         return underlyingBoard instanceof AccelerometerCapableBoard;
     }
 
@@ -421,7 +428,6 @@ class DataSourcePlayback implements DataSource, AccelerometerCapableBoard, Analo
     public boolean endOfFileReached() {
         return currentSample >= getTotalSamples();
     }
-
 
     @Override
     public boolean goToPrevMark() {

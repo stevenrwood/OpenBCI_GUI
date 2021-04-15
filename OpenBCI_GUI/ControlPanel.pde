@@ -88,7 +88,7 @@ class ControlPanel {
         dataSourceBox = new DataSourceBox(x, y, w, h, globalPadding);
         interfaceBoxCyton = new InterfaceBoxCyton(x + w, dataSourceBox.y, w, h, globalPadding);
         interfaceBoxGanglion = new InterfaceBoxGanglion(x + w, dataSourceBox.y, w, h, globalPadding);
-        
+
         comPortBox = new ComPortBox(x+w*2, y, w, h, globalPadding);
         rcBox = new RadioConfigBox(x+w, y + comPortBox.h, w, h, globalPadding);
 
@@ -100,7 +100,7 @@ class ControlPanel {
         synthChannelCountBox = new SyntheticChannelCountBox(x + w, dataSourceBox.y, w, h, globalPadding);
         sdBox = new SDBox(x + w, (channelCountBox.y + channelCountBox.h), w, h, globalPadding);
         sampleRateCytonBox = new SampleRateCytonBox(x + w + x + w - 3, channelCountBox.y, w, h, globalPadding);
-        
+
         //boxes active when eegDataSource = Playback
         int playbackWidth = int(w * 1.35);
         playbackFileBox = new PlaybackFileBox(x + w, dataSourceBox.y, playbackWidth, h, globalPadding);
@@ -108,7 +108,7 @@ class ControlPanel {
 
         galeaBox = new GaleaBox(x + w, dataSourceBox.y, w, h, globalPadding);
         dataLogBoxGalea = new SessionDataBox(x + w, (galeaBox.y + galeaBox.h), w, h, globalPadding, DATASOURCE_GALEA, dataLogger.getDataLoggerOutputFormat(), "sessionNameGalea");
-        
+
         streamingBoardBox = new StreamingBoardBox(x + w, dataSourceBox.y, w, h, globalPadding);
 
         channelPopup = new ChannelPopup(x+w, y, w, h, globalPadding);
@@ -190,10 +190,6 @@ class ControlPanel {
 
     public void draw() {
 
-        pushStyle();
-
-        noStroke();
-
         initBox.draw();
 
         if (systemMode == 10) {
@@ -205,7 +201,7 @@ class ControlPanel {
             drawStopInstructions = false;
 
             //Carefully draw certain boxes based on UI/UX flow... let each box handle what is drawn inside with localCp5 instances
-            if (eegDataSource == DATASOURCE_CYTON) {	//when data source is from OpenBCI
+            if (eegDataSource == DATASOURCE_CYTON) { //when data source is from OpenBCI
                 if (selectedProtocol == BoardProtocol.NONE) {
                     interfaceBoxCyton.draw();
                 } else {
@@ -213,7 +209,7 @@ class ControlPanel {
                     if (selectedProtocol == BoardProtocol.SERIAL) {
                         serialBox.y = interfaceBoxCyton.y + interfaceBoxCyton.h;
                         serialBox.draw();
-                        dataLogBoxCyton.y = serialBox.y + serialBox.h; 
+                        dataLogBoxCyton.y = serialBox.y + serialBox.h;
                         if (rcBox.isShowing) {
                             comPortBox.draw();
                             rcBox.draw();
@@ -241,7 +237,7 @@ class ControlPanel {
                 recentPlaybackBox.draw();
                 playbackFileBox.draw();
             } else if (eegDataSource == DATASOURCE_GALEA) {
-                dataLogBoxGalea.y = galeaBox.y + galeaBox.h;  
+                dataLogBoxGalea.y = galeaBox.y + galeaBox.h;
                 dataLogBoxGalea.draw();
                 galeaBox.draw();
             } else if (eegDataSource == DATASOURCE_SYNTHETIC) {  //synthetic
@@ -283,8 +279,6 @@ class ControlPanel {
             text(stopInstructions, x + globalPadding*2, y + globalPadding*3, w - globalPadding*4, dataSourceBox.h - globalPadding*4);
             popStyle();
         }
-
-        popStyle();
     }
 
     public void hideRadioPopoutBox() {
@@ -301,8 +295,8 @@ class ControlPanel {
 }; //end of ControlPanel class
 
 //==============================================================================//
-//                	BELOW ARE THE CLASSES FOR THE VARIOUS                       //
-//                	CONTROL PANEL BOXES (control widgets)                       //
+//                 BELOW ARE THE CLASSES FOR THE VARIOUS                       //
+//                 CONTROL PANEL BOXES (control widgets)                       //
 //==============================================================================//
 
 class DataSourceBox {
@@ -342,7 +336,7 @@ class DataSourceBox {
         textAlign(LEFT, TOP);
         text("DATA SOURCE", x + padding, y + padding);
         popStyle();
-        
+
         datasource_cp5.draw();
     }
 
@@ -351,11 +345,11 @@ class DataSourceBox {
         sourceList.setPosition(_x, _y);
         // sourceList.itemHeight = 28;
         // sourceList.padding = 9;
-        sourceList.addItem("CYTON (live)", DATASOURCE_CYTON);
-        sourceList.addItem("GANGLION (live)", DATASOURCE_GANGLION);
         if (galeaEnabled) {
             sourceList.addItem("GALEA (live)", DATASOURCE_GALEA);
         }
+        sourceList.addItem("CYTON (live)", DATASOURCE_CYTON);
+        sourceList.addItem("GANGLION (live)", DATASOURCE_GANGLION);
         sourceList.addItem("PLAYBACK (from file)", DATASOURCE_PLAYBACKFILE);
         sourceList.addItem("SYNTHETIC (algorithmic)", DATASOURCE_SYNTHETIC);
         sourceList.addItem("STREAMING (from external)", DATASOURCE_STREAMING);
@@ -559,7 +553,7 @@ class ComPortBox {
             openBCI_portName = comPorts.getFirst();
             if (cytonRadioCfg.get_channel()) {
                 controlPanel.initBox.initButtonPressed();
-            } else {                
+            } else {
                 outputWarn("Found a Cyton dongle, but could not connect to the board. Auto-Scanning now...");
                 midAutoScan = true;
             }
@@ -689,7 +683,7 @@ class BLEBox {
         }
         output("BLE Devices Refreshing");
         bleList.items.clear();
-        
+
         Thread thread = new Thread(){
             public void run(){
                 refreshBLE.getCaptionLabel().setText("SEARCHING...");
@@ -799,6 +793,7 @@ class WifiBox {
 
     public void update() {
         wifiList.updateMenu();
+        copyPaste.checkForCopyPaste(staticIPAddressTF);
     }
 
     public void draw() {
@@ -840,6 +835,7 @@ class WifiBox {
             textFont(h3, 16);
             textAlign(LEFT, TOP);
             text(boardIpInfo, x + w/2 - textWidth(boardIpInfo)/2, y + h - padding - 46);
+            popStyle();
 
             if (wifiIsRefreshing){
                 //Display spinning cog gif
@@ -975,7 +971,7 @@ class WifiBox {
     }
 
     //Clear text field on double-click
-    CallbackListener cb = new CallbackListener() { 
+    CallbackListener cb = new CallbackListener() {
         public void controlEvent(CallbackEvent theEvent) {
             staticIPAddressTF.clear();
         }
@@ -1101,7 +1097,7 @@ class InterfaceBoxGanglion {
         textAlign(LEFT, TOP);
         text("PICK TRANSFER PROTOCOL", x + padding, y + padding);
         popStyle();
-        
+
         ifbg_cp5.draw();
     }
 
@@ -1190,11 +1186,11 @@ class SessionDataBox {
         createBDFButton("bdfButton", "BDF+", dataLogger.getDataLoggerOutputFormat(), x + padding*2 + (w-padding*3)/2, y + padding*2 + 18 + 58, (w-padding*3)/2, 24);
 
         createMaxDurationDropdown("maxFileDuration", Arrays.asList(settings.fileDurations));
-        
+
     }
 
     public void update() {
-
+        copyPaste.checkForCopyPaste(sessionNameTextfield);
     }
 
     public void draw() {
@@ -1210,17 +1206,17 @@ class SessionDataBox {
         textFont(p4, 14);
         text("Name", x + padding, y + padding*2 + 14);
         popStyle();
-        
+
         //Update the position of UI elements here, as this changes when user selects WiFi mode
         sessionNameTextfield.setPosition(x + 60, y + 32);
         autoSessionName.setPosition(x + padding, y + 66);
         outputODF.setPosition(x + padding, y + padding*2 + 18 + 58);
         outputBDF.setPosition(x + padding*2 + (w-padding*3)/2, y + padding*2 + 18 + 58);
         maxDurationDropdown.setPosition(x + maxDurTextWidth, int(outputODF.getPosition()[1]) + 24 + padding);
-        
+
         boolean odfIsSelected = dataLogger.getDataLoggerOutputFormat() == dataLogger.OUTPUT_SOURCE_ODF;
         maxDurationDropdown.setVisible(odfIsSelected);
-        
+
         if (odfIsSelected) {
             pushStyle();
             //draw backgrounds to dropdown scrollableLists ... unfortunately ControlP5 doesn't have this by default, so we have to hack it to make it look nice...
@@ -1228,9 +1224,7 @@ class SessionDataBox {
             fill(OPENBCI_DARKBLUE);
             maxDurationDropdown.setPosition(x + maxDurTextWidth, int(outputODF.getPosition()[1]) + 24 + padding);
             //Carefully draw some text to the left of above dropdown, otherwise this text moves when changing WiFi mode
-            int extraPadding = (controlPanel.getWifiSearchStyle() == controlPanel.WIFI_STATIC) || selectedProtocol != BoardProtocol.WIFI
-                ? 20 
-                : 5;
+            int extraPadding = 20;
             fill(OPENBCI_DARKBLUE);
             textFont(p4, 14);
             text("Max File Duration", maxDurText_x, y + h - 24 - padding + extraPadding);
@@ -1318,7 +1312,7 @@ class SessionDataBox {
             .setPaddingTop(3) //4-pixel vertical offset to center text
             ;
         maxDurationDropdown.addCallback(new CallbackListener() {
-            public void controlEvent(CallbackEvent theEvent) {    
+            public void controlEvent(CallbackEvent theEvent) {
                 if (theEvent.getAction() == ControlP5.ACTION_BROADCAST) {
                     int n = (int)(theEvent.getController()).getValue();
                     settings.setLogFileDurationChoice(n);
@@ -1890,6 +1884,15 @@ class RecentPlaybackBox {
 
     private void getRecentPlaybackFiles() {
         int numFilesToShow = 10;
+
+        File f = new File(userPlaybackHistoryFile);
+        if (!f.exists()) {
+            println("OpenBCI_GUI::Control Panel: Playback history file not found.");
+            recentPlaybackFilesHaveUpdated = true;
+            playbackHistoryFileExists = false;
+            return;
+        }
+
         try {
             JSONObject playbackHistory = loadJSONObject(userPlaybackHistoryFile);
             JSONArray recentFilesArray = playbackHistory.getJSONArray("playbackFileHistory");
@@ -1913,8 +1916,8 @@ class RecentPlaybackBox {
 
             playbackHistoryFileExists = true;
         } catch (Exception e) {
-            // println("OpenBCI_GUI::Control Panel: Playback history file not found or other error.");
-            // println(e.getMessage());
+            println("OpenBCI_GUI::Control Panel: Other error! Please submit an issue on Github and share this console log.");
+            println(e.getMessage());
             playbackHistoryFileExists = false;
         }
         recentPlaybackFilesHaveUpdated = true;
@@ -1979,7 +1982,8 @@ class GaleaBox {
     private final String boxLabel = "GALEA CONFIG";
     private final String ipAddressLabel = "IP Address";
     private final String sampleRateLabel = "Sample Rate";
-    private String ipAddress = "192.168.4.1";
+    //private String ipAddress = "192.168.4.1";
+    private String ipAddress = "127.0.0.1"; //For use with testing emulator
     private ControlP5 localCP5;
     private Textfield ipAddressTF;
     private ScrollableList srList;
@@ -2002,7 +2006,7 @@ class GaleaBox {
     }
 
     public void update() {
-        // nothing
+        copyPaste.checkForCopyPaste(ipAddressTF);
     }
 
     public void draw() {
@@ -2025,7 +2029,7 @@ class GaleaBox {
         text(sampleRateLabel, x + padding, srList.getPosition()[1] + 2);
         text(ipAddressLabel, x + padding, ipAddressTF.getPosition()[1] + 2);
         popStyle();
-        
+
         //draw cp5 last, on top of everything in this box
         localCP5.draw();
     }
@@ -2191,7 +2195,7 @@ class StreamingBoardBox {
             .align(5, 10, 20, 40)
             .onDoublePress(cb)
             .setAutoClear(true);
-        
+
         port = localCP5.addTextfield("port")
             .setPosition(x + padding*5 + w/2, y + headerH + padding*2)
             .setCaptionLabel("")
@@ -2208,14 +2212,15 @@ class StreamingBoardBox {
             .align(5, 10, 20, 40)
             .onDoublePress(cb)
             .setAutoClear(true);
-        
+
         boardIdList = createDropdown("streamingBoard_IDs", BrainFlowStreaming_Boards.values());
         boardIdList.setPosition(x + 48 + padding*2, y + headerH + padding*3 + objectH);
         boardIdList.setSize(170, (boardIdList.getItems().size()+1)*objectH);
     }
 
     public void update() {
-        // nothing
+        copyPaste.checkForCopyPaste(ipAddress);
+        copyPaste.checkForCopyPaste(port);
     }
 
     public void draw() {
@@ -2238,7 +2243,7 @@ class StreamingBoardBox {
         text(portLabel, x + w/2, y + padding*2 + headerH + 4);
         text(boardLabel, x + padding, y + padding*3 + objectH + headerH + 4);
         popStyle();
-        
+
         //draw cp5 last, on top of everything in this box
         localCP5.draw();
     }
@@ -2281,7 +2286,7 @@ class StreamingBoardBox {
             ;
         return list;
     }
-    
+
     public BrainFlowStreaming_Boards getBoard() {
         int val = (int)boardIdList.getValue();
         Map bob = boardIdList.getItem(val);
@@ -2298,7 +2303,7 @@ class StreamingBoardBox {
     }
 
     //Clear text field on double-click
-    CallbackListener cb = new CallbackListener() { 
+    CallbackListener cb = new CallbackListener() {
         public void controlEvent(CallbackEvent theEvent) {
             port.clear();
         }
@@ -2354,7 +2359,7 @@ class PlaybackFileBox {
         selectPlaybackFile.onRelease(new CallbackListener() {
             public void controlEvent(CallbackEvent theEvent) {
                 output("Select a file for playback");
-                selectInput("Select a pre-recorded file for playback:", 
+                selectInput("Select a pre-recorded file for playback:",
                             "playbackFileSelected",
                             new File(directoryManager.getGuiDataPath() + "Recordings")
                 );
@@ -2368,8 +2373,8 @@ class PlaybackFileBox {
         sampleDataButton.onRelease(new CallbackListener() {
             public void controlEvent(CallbackEvent theEvent) {
                 output("Select a file for playback");
-                selectInput("Select a pre-recorded file for playback:", 
-                            "playbackFileSelected", 
+                selectInput("Select a pre-recorded file for playback:",
+                            "playbackFileSelected",
                             new File(directoryManager.getGuiDataPath() + "Sample_Data" + System.getProperty("file.separator") + "OpenBCI-sampleData-2-meditation.txt")
                 );
             }
@@ -2716,7 +2721,7 @@ class InitBox {
         strokeWeight(1);
         rect(x, y, w, h);
         popStyle();
-        
+
         initBox_cp5.draw();
     }
 
